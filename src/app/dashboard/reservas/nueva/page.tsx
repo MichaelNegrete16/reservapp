@@ -37,6 +37,22 @@ export default function NuevaReservaPage() {
   const [motivo, setMotivo] = useState("Casual Dinner");
   const [personas, setPersonas] = useState(2);
   const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateStep = (): boolean => {
+    const next: Record<string, string> = {};
+    if (step === 1) {
+      if (!selectedDate) next.date = "Selecciona una fecha.";
+    }
+    if (step === 2) {
+      if (!nombre.trim()) next.nombre = "El nombre es obligatorio.";
+      if (!telefono.trim()) next.telefono = "El teléfono es obligatorio.";
+      if (!email.trim()) next.email = "El correo es obligatorio.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Correo inválido.";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -119,7 +135,9 @@ export default function NuevaReservaPage() {
                   </div>
                 </div>
 
-                <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>
+                {errors.date && <p style={{ color: "#e53935", fontSize: 13, margin: "8px 0 0" }}>{errors.date}</p>}
+
+              <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>
                   Arrival Time
                 </h3>
                 <div className={styles.timeSlots}>
@@ -168,30 +186,33 @@ export default function NuevaReservaPage() {
               <div className={styles.field}>
                 <label className={styles.label}>FULL NAME</label>
                 <input
-                  className={styles.input}
+                  className={`${styles.input} ${errors.nombre ? styles.inputError : ""}`}
                   placeholder="John Doe"
                   value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
+                  onChange={(e) => { setNombre(e.target.value); setErrors((p) => ({ ...p, nombre: "" })); }}
                 />
+                {errors.nombre && <span className={styles.fieldError}>{errors.nombre}</span>}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>PHONE NUMBER</label>
                 <input
-                  className={styles.input}
+                  className={`${styles.input} ${errors.telefono ? styles.inputError : ""}`}
                   placeholder="+1 (555) 000-0000"
                   value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
+                  onChange={(e) => { setTelefono(e.target.value); setErrors((p) => ({ ...p, telefono: "" })); }}
                 />
+                {errors.telefono && <span className={styles.fieldError}>{errors.telefono}</span>}
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
                 <label className={styles.label}>EMAIL ADDRESS</label>
                 <input
-                  className={styles.input}
+                  className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
                   type="email"
                   placeholder="john@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
                 />
+                {errors.email && <span className={styles.fieldError}>{errors.email}</span>}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>DOCUMENT ID</label>
@@ -299,11 +320,11 @@ export default function NuevaReservaPage() {
           <div />
         )}
         {step < 3 ? (
-          <button className={styles.btnNext} onClick={() => setStep(step + 1)}>
+          <button className={styles.btnNext} onClick={() => { if (validateStep()) setStep(step + 1); }}>
             Continue <ArrowRight size={16} />
           </button>
         ) : (
-          <button className={styles.btnComplete} onClick={handleComplete}>
+          <button className={styles.btnComplete} onClick={() => { if (validateStep()) handleComplete(); }}>
             Complete Reservation <ArrowRight size={16} />
           </button>
         )}

@@ -30,6 +30,7 @@ export default function RegistroPage() {
   const [zonas, setZonas] = useState<string[]>(["Terraza"]);
   const [turnoAlmuerzo, setTurnoAlmuerzo] = useState(true);
   const [turnoCena, setTurnoCena] = useState(true);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const toggleZona = (zona: string) => {
     setZonas((prev) =>
@@ -37,7 +38,28 @@ export default function RegistroPage() {
     );
   };
 
+  const validateStep = (): boolean => {
+    const next: Record<string, string> = {};
+    if (step === 1) {
+      if (!nombre.trim()) next.nombre = "El nombre es obligatorio.";
+      if (!email.trim()) next.email = "El correo es obligatorio.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Correo inválido.";
+      if (!password) next.password = "La contraseña es obligatoria.";
+      else if (password.length < 6) next.password = "Mínimo 6 caracteres.";
+      if (password !== confirmPassword) next.confirmPassword = "Las contraseñas no coinciden.";
+    }
+    if (step === 2) {
+      if (!restaurantName.trim()) next.restaurantName = "El nombre del restaurante es obligatorio.";
+    }
+    if (step === 3) {
+      if (zonas.length === 0) next.zonas = "Selecciona al menos una zona.";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const handleNext = () => {
+    if (!validateStep()) return;
     if (step < 3) setStep(step + 1);
     else window.location.href = "/dashboard";
   };
@@ -98,41 +120,45 @@ export default function RegistroPage() {
             <div className={styles.field}>
               <label className={styles.label}>Full Name</label>
               <input
-                className={styles.input}
+                className={`${styles.input} ${errors.nombre ? styles.inputError : ""}`}
                 placeholder="John Doe"
                 value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                onChange={(e) => { setNombre(e.target.value); setErrors((p) => ({ ...p, nombre: "" })); }}
               />
+              {errors.nombre && <span className={styles.fieldError}>{errors.nombre}</span>}
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Email Address</label>
               <input
-                className={styles.input}
+                className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
                 type="email"
                 placeholder="john@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
               />
+              {errors.email && <span className={styles.fieldError}>{errors.email}</span>}
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Password</label>
               <input
-                className={styles.input}
+                className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: "" })); }}
               />
+              {errors.password && <span className={styles.fieldError}>{errors.password}</span>}
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Confirm Password</label>
               <input
-                className={styles.input}
+                className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ""}`}
                 type="password"
                 placeholder="••••••••"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => { setConfirmPassword(e.target.value); setErrors((p) => ({ ...p, confirmPassword: "" })); }}
               />
+              {errors.confirmPassword && <span className={styles.fieldError}>{errors.confirmPassword}</span>}
             </div>
           </div>
           <div className={styles.cardActions}>
@@ -165,11 +191,12 @@ export default function RegistroPage() {
             <div className={styles.field}>
               <label className={styles.label}>Restaurant Name</label>
               <input
-                className={styles.input}
+                className={`${styles.input} ${errors.restaurantName ? styles.inputError : ""}`}
                 placeholder="La Trattoria"
                 value={restaurantName}
-                onChange={(e) => setRestaurantName(e.target.value)}
+                onChange={(e) => { setRestaurantName(e.target.value); setErrors((p) => ({ ...p, restaurantName: "" })); }}
               />
+              {errors.restaurantName && <span className={styles.fieldError}>{errors.restaurantName}</span>}
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Address</label>
@@ -217,13 +244,14 @@ export default function RegistroPage() {
                   className={`${styles.chip} ${
                     zonas.includes(z) ? styles.chipActive : ""
                   }`}
-                  onClick={() => toggleZona(z)}
+                  onClick={() => { toggleZona(z); setErrors((p) => ({ ...p, zonas: "" })); }}
                 >
                   {z}
                   {zonas.includes(z) && <X size={14} />}
                 </button>
               ))}
             </div>
+            {errors.zonas && <span className={styles.fieldError}>{errors.zonas}</span>}
           </div>
 
           <div className={styles.section}>

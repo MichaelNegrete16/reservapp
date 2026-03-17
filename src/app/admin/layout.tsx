@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, UtensilsCrossed, CreditCard, ScrollText, Settings } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, CreditCard, ScrollText, LogOut } from "lucide-react";
+import { clearSession } from "@/lib/auth";
 import styles from "./AdminLayout.module.css";
 
 const NAV = [
@@ -42,7 +43,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className={styles.userName}>Alex Rivera</div>
             <div className={styles.userRole}>System Owner</div>
           </div>
-          <Settings size={16} className={styles.settingsIcon} />
+          <button
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#ccc", marginLeft: "auto", display: "flex", padding: 4 }}
+            title="Cerrar sesión"
+            onClick={() => { clearSession(); window.location.href = "/login"; }}
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </aside>
       <main className={styles.main}>{children}</main>

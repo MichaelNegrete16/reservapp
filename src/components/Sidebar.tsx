@@ -11,8 +11,9 @@ import {
   Users,
   BarChart3,
   Settings,
-  MoreVertical,
+  LogOut,
 } from "lucide-react";
+import { clearSession } from "@/lib/auth";
 import styles from "./Sidebar.module.css";
 
 const NAV_ITEMS = [
@@ -63,8 +64,12 @@ export default function Sidebar() {
           <span className={styles.userName}>Marco Rossi</span>
           <span className={styles.userRole}>Manager</span>
         </div>
-        <button className={styles.userMenu}>
-          <MoreVertical size={16} />
+        <button
+          className={styles.userMenu}
+          title="Cerrar sesión"
+          onClick={() => { clearSession(); window.location.href = "/login"; }}
+        >
+          <LogOut size={16} />
         </button>
       </div>
     </aside>
