@@ -17,10 +17,10 @@ interface Zona {
 }
 
 const INITIAL_ZONAS: Zona[] = [
-  { id: "z1", name: "Main Dining Hall", type: "Indoor", floor: "Ground Floor", description: "Primary seating area with central access to the buffet.", capacity: 120, active: true },
-  { id: "z2", name: "Outdoor Terrace", type: "Outdoor", floor: "Garden View", description: "Open-air dining experience surrounded by greenery.", capacity: 45, active: true },
-  { id: "z3", name: "Private Suite A", type: "Event", floor: "Second Floor", description: "Exclusive booking area for corporate events. Currently closed.", capacity: 20, active: false },
-  { id: "z4", name: "Bar Lounge", type: "Indoor", floor: "Entrance Area", description: "High-top seating for quick service and cocktails.", capacity: 35, active: true },
+  { id: "z1", name: "Salón principal", type: "Interior", floor: "Planta baja", description: "Área principal de mesas con acceso central al buffet.", capacity: 120, active: true },
+  { id: "z2", name: "Terraza exterior", type: "Exterior", floor: "Vista al jardín", description: "Comedor al aire libre rodeado de vegetación.", capacity: 45, active: true },
+  { id: "z3", name: "Suite privada A", type: "Eventos", floor: "Segundo piso", description: "Área exclusiva para eventos corporativos. Actualmente cerrada.", capacity: 20, active: false },
+  { id: "z4", name: "Barra lounge", type: "Interior", floor: "Área de entrada", description: "Asientos altos para servicio rápido y cócteles.", capacity: 35, active: true },
 ];
 
 const ITEMS_PER_PAGE = 4;
@@ -50,7 +50,7 @@ export default function ZonasPage() {
   const openAdd = () => {
     setEditZona(null);
     setFormName(""); setFormDesc(""); setFormCapacity(20);
-    setFormType("Indoor"); setFormFloor("Ground Floor");
+    setFormType("Interior"); setFormFloor("Planta baja");
     setShowModal(true);
   };
 
@@ -87,30 +87,30 @@ export default function ZonasPage() {
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Zones Management</h1>
-          <p className={styles.subtitle}>Configure and manage your venue&apos;s seating areas, floor plans, and section capacities.</p>
+          <h1 className={styles.title}>Gestión de Zonas</h1>
+          <p className={styles.subtitle}>Configura y administra las áreas de asientos, planos y capacidades de cada sección.</p>
         </div>
         <button className={styles.btnAdd} onClick={openAdd}>
-          <Plus size={16} /> Add Zone
+          <Plus size={16} /> Agregar zona
         </button>
       </div>
 
       {/* KPIs */}
       <div className={styles.kpis}>
         <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Total Zones</span>
+          <span className={styles.kpiLabel}>Total zonas</span>
           <span className={styles.kpiValue}>{zonas.length}</span>
         </div>
         <div className={`${styles.kpiCard} ${styles.kpiCardOrange}`}>
-          <span className={styles.kpiLabel}>Total Capacity</span>
+          <span className={styles.kpiLabel}>Capacidad total</span>
           <span className={styles.kpiValue}>{totalCapacity}</span>
         </div>
         <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Active</span>
+          <span className={styles.kpiLabel}>Activas</span>
           <span className={`${styles.kpiValue} ${styles.kpiGreen}`}>{activeCount}</span>
         </div>
         <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Maintenance</span>
+          <span className={styles.kpiLabel}>Mantenimiento</span>
           <span className={`${styles.kpiValue} ${styles.kpiOrange}`}>{maintenanceCount}</span>
         </div>
       </div>
@@ -121,11 +121,11 @@ export default function ZonasPage() {
           <thead>
             <tr>
               <th />
-              <th>Zone Name</th>
-              <th>Description</th>
-              <th>Max Capacity</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Nombre de zona</th>
+              <th>Descripción</th>
+              <th>Capacidad máx.</th>
+              <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -163,7 +163,7 @@ export default function ZonasPage() {
         {/* Pagination */}
         <div className={styles.pagination}>
           <span className={styles.paginationInfo}>
-            Showing 1 to {paged.length} of {zonas.length} zones
+            Mostrando 1 a {paged.length} de {zonas.length} zonas
           </span>
           <div className={styles.pageButtons}>
             <button className={styles.pageBtn} disabled={page === 1} onClick={() => setPage(page - 1)}>‹</button>
@@ -184,41 +184,41 @@ export default function ZonasPage() {
       {/* Modal */}
       {showModal && (
         <Modal
-          title={editZona ? "Edit Zone" : "Add New Zone"}
+          title={editZona ? "Editar zona" : "Agregar zona"}
           onClose={() => setShowModal(false)}
           footer={
             <>
-              <button className={styles.btnCancel} onClick={() => setShowModal(false)}>Cancel</button>
+              <button className={styles.btnCancel} onClick={() => setShowModal(false)}>Cancelar</button>
               <button className={styles.btnSave} onClick={handleSave}>
-                {editZona ? "Save Changes" : "Add Zone"}
+                {editZona ? "Guardar cambios" : "Agregar zona"}
               </button>
             </>
           }
         >
           <div className={styles.modalForm}>
             <div className={styles.modalField}>
-              <label className={styles.modalLabel}>Zone Name</label>
-              <input className={styles.modalInput} value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Main Dining Hall" />
+              <label className={styles.modalLabel}>Nombre de zona</label>
+              <input className={styles.modalInput} value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="ej. Salón principal" />
             </div>
             <div className={styles.modalField}>
-              <label className={styles.modalLabel}>Description</label>
+              <label className={styles.modalLabel}>Descripción</label>
               <textarea className={styles.modalTextarea} value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={2} />
             </div>
             <div className={styles.modalRow}>
               <div className={styles.modalField}>
-                <label className={styles.modalLabel}>Type</label>
+                <label className={styles.modalLabel}>Tipo</label>
                 <select className={styles.modalInput} value={formType} onChange={(e) => setFormType(e.target.value)}>
-                  {["Indoor", "Outdoor", "Event", "VIP"].map((t) => <option key={t}>{t}</option>)}
+                  {["Interior", "Exterior", "Eventos", "VIP"].map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div className={styles.modalField}>
-                <label className={styles.modalLabel}>Capacity</label>
+                <label className={styles.modalLabel}>Capacidad</label>
                 <input type="number" className={styles.modalInput} value={formCapacity} onChange={(e) => setFormCapacity(Number(e.target.value))} min={1} />
               </div>
             </div>
             <div className={styles.modalField}>
-              <label className={styles.modalLabel}>Floor / Location</label>
-              <input className={styles.modalInput} value={formFloor} onChange={(e) => setFormFloor(e.target.value)} placeholder="e.g. Ground Floor" />
+              <label className={styles.modalLabel}>Piso / Ubicación</label>
+              <input className={styles.modalInput} value={formFloor} onChange={(e) => setFormFloor(e.target.value)} placeholder="ej. Planta baja" />
             </div>
           </div>
         </Modal>

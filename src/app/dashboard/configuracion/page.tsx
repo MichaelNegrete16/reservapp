@@ -7,16 +7,16 @@ import styles from "./Configuracion.module.css";
 type ConfigTab = "general" | "appearance" | "notifications" | "team" | "billing";
 
 const TEAM_MEMBERS = [
-  { id: "u1", name: "Sarah Jenkins", role: "ADMIN", email: "sarah@reservapp.io", initials: "SJ", added: "Owner" },
-  { id: "u2", name: "Marc Peterson", role: "STAFF", email: "marc@reservapp.io", initials: "MP", added: "Added 2d ago" },
+  { id: "u1", name: "Sarah Jenkins", role: "ADMIN", email: "sarah@reservapp.io", initials: "SJ", added: "Propietario" },
+  { id: "u2", name: "Marc Peterson", role: "STAFF", email: "marc@reservapp.io", initials: "MP", added: "Agregado hace 2 días" },
 ];
 
 const COLORS = ["#e65100", "#1565c0", "#388e3c", "#7b1fa2"];
 
 const BILLING_HISTORY = [
-  { date: "Nov 1, 2023", plan: "Pro Monthly", amount: "$49.00", status: "Paid" },
-  { date: "Oct 1, 2023", plan: "Pro Monthly", amount: "$49.00", status: "Paid" },
-  { date: "Sep 1, 2023", plan: "Pro Monthly", amount: "$49.00", status: "Paid" },
+  { date: "1 nov, 2023", plan: "Pro mensual", amount: "$49.00", status: "Pagado" },
+  { date: "1 oct, 2023", plan: "Pro mensual", amount: "$49.00", status: "Pagado" },
+  { date: "1 sep, 2023", plan: "Pro mensual", amount: "$49.00", status: "Pagado" },
 ];
 
 export default function ConfiguracionPage() {
@@ -28,10 +28,10 @@ export default function ConfiguracionPage() {
 
   const TABS: { id: ConfigTab; label: string }[] = [
     { id: "general", label: "General" },
-    { id: "appearance", label: "Appearance" },
-    { id: "notifications", label: "Notifications" },
-    { id: "team", label: "Team" },
-    { id: "billing", label: "Billing" },
+    { id: "appearance", label: "Apariencia" },
+    { id: "notifications", label: "Notificaciones" },
+    { id: "team", label: "Equipo" },
+    { id: "billing", label: "Facturación" },
   ];
 
   return (
@@ -42,7 +42,7 @@ export default function ConfiguracionPage() {
           <div className={styles.subnavLogo}>🍴</div>
           <div>
             <div className={styles.subnavBrand}>ReservApp</div>
-            <div className={styles.subnavSub}>Workspace Settings</div>
+            <div className={styles.subnavSub}>Configuración del espacio</div>
           </div>
         </div>
         {TABS.map(({ id, label }) => (
@@ -71,27 +71,27 @@ export default function ConfiguracionPage() {
             {TABS.find((t) => t.id === tab)?.label}
           </h2>
           <div className={styles.headerActions}>
-            <button className={styles.btnDiscard}>Discard</button>
-            <button className={styles.btnSave}>Save Changes</button>
+            <button className={styles.btnDiscard}>Descartar</button>
+            <button className={styles.btnSave}>Guardar cambios</button>
           </div>
         </div>
 
         {/* General */}
         {tab === "general" && (
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Restaurant Information</h3>
+            <h3 className={styles.sectionTitle}>Información del restaurante</h3>
             <div className={styles.formGrid}>
               <div className={styles.field}>
-                <label className={styles.label}>Restaurant Name</label>
+                <label className={styles.label}>Nombre del restaurante</label>
                 <input className={styles.input} defaultValue="La Trattoria" />
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>Phone</label>
-                <input className={styles.input} defaultValue="+1 (555) 000-0000" />
+                <label className={styles.label}>Teléfono</label>
+                <input className={styles.input} defaultValue="+57 (555) 000-0000" />
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label className={styles.label}>Address</label>
-                <input className={styles.input} defaultValue="123 Main St, New York, NY 10001" />
+                <label className={styles.label}>Dirección</label>
+                <input className={styles.input} defaultValue="Calle Principal 123, Bogotá" />
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Instagram</label>
@@ -105,10 +105,10 @@ export default function ConfiguracionPage() {
             <div className={styles.uploadLogoZone}>
               <div className={styles.logoPlaceholder}>🍴</div>
               <div>
-                <p className={styles.uploadTitle}>Restaurant Logo</p>
-                <p className={styles.uploadDesc}>PNG, JPG up to 2MB</p>
+                <p className={styles.uploadTitle}>Logo del restaurante</p>
+                <p className={styles.uploadDesc}>PNG, JPG hasta 2MB</p>
               </div>
-              <button className={styles.btnUpload}>Upload</button>
+              <button className={styles.btnUpload}>Subir</button>
             </div>
           </div>
         )}
@@ -118,9 +118,9 @@ export default function ConfiguracionPage() {
           <div className={styles.appearanceGrid}>
             <div className={styles.appearanceLeft}>
               <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>Brand Identity</h3>
-                <p className={styles.sectionDesc}>Define the core colors for your public booking widget.</p>
-                <label className={styles.label}>Primary Theme Color</label>
+                <h3 className={styles.sectionTitle}>Identidad de marca</h3>
+                <p className={styles.sectionDesc}>Define los colores principales del widget público de reservas.</p>
+                <label className={styles.label}>Color principal del tema</label>
                 <div className={styles.colorSwatches}>
                   {COLORS.map((c) => (
                     <button
@@ -134,32 +134,32 @@ export default function ConfiguracionPage() {
                 </div>
               </div>
               <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>Accent & UI Styling</h3>
+                <h3 className={styles.sectionTitle}>Estilo de UI</h3>
                 <div className={styles.formGrid}>
                   <div className={styles.field}>
-                    <label className={styles.label}>Background Style</label>
+                    <label className={styles.label}>Estilo de fondo</label>
                     <select className={styles.input} value={bgStyle} onChange={(e) => setBgStyle(e.target.value)}>
-                      <option>Clean White</option>
-                      <option>Soft Gray</option>
-                      <option>Dark Mode</option>
+                      <option>Blanco limpio</option>
+                      <option>Gris suave</option>
+                      <option>Modo oscuro</option>
                     </select>
                   </div>
                   <div className={styles.field}>
-                    <label className={styles.label}>Corner Radius</label>
+                    <label className={styles.label}>Radio de esquinas</label>
                     <select className={styles.input} value={cornerRadius} onChange={(e) => setCornerRadius(e.target.value)}>
-                      <option>Modern (8px)</option>
-                      <option>Rounded (16px)</option>
-                      <option>Sharp (0px)</option>
+                      <option>Moderno (8px)</option>
+                      <option>Redondeado (16px)</option>
+                      <option>Cuadrado (0px)</option>
                     </select>
                   </div>
                 </div>
               </div>
               <div className={styles.section}>
-                <h3 className={styles.sectionTitle}>Typography</h3>
-                <p className={styles.sectionDesc}>Select fonts that match your brand&apos;s voice.</p>
+                <h3 className={styles.sectionTitle}>Tipografía</h3>
+                <p className={styles.sectionDesc}>Elige fuentes que reflejen la identidad de tu marca.</p>
                 {[
-                  { id: "public-sans", label: "Public Sans (Default)", desc: "Highly readable, neutral, and modern." },
-                  { id: "playfair", label: "Playfair Display", desc: "Elegant and traditional serif." },
+                  { id: "public-sans", label: "Public Sans (Por defecto)", desc: "Altamente legible, neutral y moderno." },
+                  { id: "playfair", label: "Playfair Display", desc: "Elegante y serifa tradicional." },
                 ].map((f) => (
                   <div
                     key={f.id}
@@ -179,12 +179,12 @@ export default function ConfiguracionPage() {
             <div className={styles.appearanceRight}>
               <div className={styles.previewPanel}>
                 <div className={styles.previewHeader}>
-                  <span className={styles.previewLabel}>LIVE PREVIEW</span>
-                  <span className={styles.previewLive}><span className={styles.liveDot} /> LIVE UPDATE ENABLED</span>
+                  <span className={styles.previewLabel}>VISTA PREVIA</span>
+                  <span className={styles.previewLive}><span className={styles.liveDot} /> ACTUALIZACIÓN EN VIVO</span>
                 </div>
                 <div className={styles.previewWidget} style={{ background: primaryColor }}>
-                  <p className={styles.previewTitle}>Book a Consultation</p>
-                  <p className={styles.previewSub}>Select a date and time that works for you.</p>
+                  <p className={styles.previewTitle}>Reserva una mesa</p>
+                  <p className={styles.previewSub}>Selecciona la fecha y hora que prefieras.</p>
                 </div>
               </div>
             </div>
@@ -194,13 +194,13 @@ export default function ConfiguracionPage() {
         {/* Notifications */}
         {tab === "notifications" && (
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Notification Settings</h3>
+            <h3 className={styles.sectionTitle}>Configuración de notificaciones</h3>
             {[
-              "Email confirmation to customer",
-              "SMS reminder 24h before",
-              "Email on cancellation",
-              "Staff alert on new booking",
-              "No-show alert",
+              "Confirmación por correo al cliente",
+              "Recordatorio SMS 24h antes",
+              "Correo en caso de cancelación",
+              "Alerta al equipo por nueva reserva",
+              "Alerta por no presentación",
             ].map((label) => (
               <div key={label} className={styles.notifRow}>
                 <span className={styles.notifLabel}>{label}</span>
@@ -210,14 +210,14 @@ export default function ConfiguracionPage() {
                 </label>
               </div>
             ))}
-            <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>Email Template</h3>
+            <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>Plantilla de correo</h3>
             <div className={styles.field}>
-              <label className={styles.label}>Subject</label>
-              <input className={styles.input} defaultValue="Your reservation at {{restaurant_name}} is confirmed!" />
+              <label className={styles.label}>Asunto</label>
+              <input className={styles.input} defaultValue="Tu reserva en {{restaurant_name}} está confirmada" />
             </div>
             <div className={styles.field} style={{ marginTop: 12 }}>
-              <label className={styles.label}>Body</label>
-              <textarea className={styles.textarea} rows={4} defaultValue="Hi {{customer_name}}, your reservation for {{guests}} on {{date}} at {{time}} is confirmed." />
+              <label className={styles.label}>Cuerpo</label>
+              <textarea className={styles.textarea} rows={4} defaultValue="Hola {{customer_name}}, tu reserva para {{guests}} personas el {{date}} a las {{time}} está confirmada." />
             </div>
           </div>
         )}
@@ -227,16 +227,16 @@ export default function ConfiguracionPage() {
           <div className={styles.section}>
             <div className={styles.teamHeader}>
               <div>
-                <h3 className={styles.sectionTitle}>Team Members</h3>
-                <p className={styles.sectionDesc}>Manage who has access to this workspace.</p>
+                <h3 className={styles.sectionTitle}>Miembros del equipo</h3>
+                <p className={styles.sectionDesc}>Gestiona quién tiene acceso a este espacio de trabajo.</p>
               </div>
-              <button className={styles.btnInvite}>👥 Invite</button>
+              <button className={styles.btnInvite}>👥 Invitar</button>
             </div>
             <div className={styles.teamTable}>
               <div className={styles.teamTableHeader}>
-                <span>Member</span>
-                <span>Role</span>
-                <span>Action</span>
+                <span>Miembro</span>
+                <span>Rol</span>
+                <span>Acción</span>
               </div>
               {TEAM_MEMBERS.map((m) => (
                 <div key={m.id} className={styles.teamRow}>
@@ -266,23 +266,23 @@ export default function ConfiguracionPage() {
         {/* Billing */}
         {tab === "billing" && (
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Current Plan</h3>
+            <h3 className={styles.sectionTitle}>Plan actual</h3>
             <div className={styles.planCard}>
               <div className={styles.planInfo}>
-                <span className={styles.planBadge}>PRO MONTHLY</span>
-                <p className={styles.planDesc}>Unlimited reservations, advanced analytics, priority support.</p>
+                <span className={styles.planBadge}>PRO MENSUAL</span>
+                <p className={styles.planDesc}>Reservas ilimitadas, analíticas avanzadas, soporte prioritario.</p>
               </div>
-              <div className={styles.planPrice}>$49<span>/mo</span></div>
-              <button className={styles.btnUpgrade}>Upgrade to Annual (Save 20%)</button>
+              <div className={styles.planPrice}>$49<span>/mes</span></div>
+              <button className={styles.btnUpgrade}>Actualizar a anual (ahorra 20%)</button>
             </div>
 
-            <h3 className={styles.sectionTitle} style={{ marginTop: 28 }}>Payment History</h3>
+            <h3 className={styles.sectionTitle} style={{ marginTop: 28 }}>Historial de pagos</h3>
             <div className={styles.billingTable}>
               <div className={styles.billingHeader}>
-                <span>Date</span>
+                <span>Fecha</span>
                 <span>Plan</span>
-                <span>Amount</span>
-                <span>Status</span>
+                <span>Monto</span>
+                <span>Estado</span>
               </div>
               {BILLING_HISTORY.map((b) => (
                 <div key={b.date} className={styles.billingRow}>

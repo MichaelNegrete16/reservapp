@@ -15,13 +15,13 @@ interface TableItem {
   selected: boolean;
 }
 
-const ZONES = ["Main Dining Room", "Outdoor Terrace", "Bar Lounge", "VIP Room"];
+const ZONES = ["Salón principal", "Terraza exterior", "Barra lounge", "Sala VIP"];
 const CAPACITIES = [2, 4, 6, 8, 10, 12];
 
 const INITIAL_TABLES: TableItem[] = [
-  { id: "t1", number: "01", shape: "round", capacity: 4, zone: "Main Dining Room", x: 120, y: 80, selected: false },
-  { id: "t2", number: "03", shape: "square", capacity: 2, zone: "Main Dining Room", x: 320, y: 220, selected: false },
-  { id: "t3", number: "12", shape: "square", capacity: 6, zone: "Main Dining Room", x: 480, y: 120, selected: true },
+  { id: "t1", number: "01", shape: "round", capacity: 4, zone: "Salón principal", x: 120, y: 80, selected: false },
+  { id: "t2", number: "03", shape: "square", capacity: 2, zone: "Salón principal", x: 320, y: 220, selected: false },
+  { id: "t3", number: "12", shape: "square", capacity: 6, zone: "Salón principal", x: 480, y: 120, selected: true },
 ];
 
 export default function MesasPage() {
@@ -95,7 +95,7 @@ export default function MesasPage() {
     <div className={styles.page}>
       {/* Left Panel */}
       <aside className={styles.panel}>
-        <h2 className={styles.panelTitle}>Add Element</h2>
+        <h2 className={styles.panelTitle}>Agregar elemento</h2>
 
         {/* Shape Selector */}
         <div className={styles.shapeRow}>
@@ -104,30 +104,30 @@ export default function MesasPage() {
             onClick={() => setShape("round")}
           >
             <div className={styles.shapeCircle} />
-            ROUND
+            REDONDA
           </button>
           <button
             className={`${styles.shapeBtn} ${shape === "square" ? styles.shapeBtnActive : ""}`}
             onClick={() => setShape("square")}
           >
             <div className={styles.shapeSquare} />
-            SQUARE
+            CUADRADA
           </button>
         </div>
 
         {/* Fields */}
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>Table Number</label>
+          <label className={styles.label}>Número de mesa</label>
           <input
             className={styles.input}
-            placeholder="e.g. T-12"
+            placeholder="ej. M-12"
             value={tableNumber}
             onChange={(e) => setTableNumber(e.target.value)}
           />
         </div>
 
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>Capacity</label>
+          <label className={styles.label}>Capacidad</label>
           <select
             className={styles.input}
             value={capacity}
@@ -135,14 +135,14 @@ export default function MesasPage() {
           >
             {CAPACITIES.map((c) => (
               <option key={c} value={c}>
-                {c} Persons
+                {c} personas
               </option>
             ))}
           </select>
         </div>
 
         <div className={styles.fieldGroup}>
-          <label className={styles.label}>Zone</label>
+          <label className={styles.label}>Zona</label>
           <select
             className={styles.input}
             value={zone}
@@ -155,23 +155,23 @@ export default function MesasPage() {
         </div>
 
         <button className={styles.btnAdd} onClick={handleAddTable}>
-          <Plus size={16} /> Add to Floor
+          <Plus size={16} /> Agregar al plano
         </button>
 
         {/* Active Tables List */}
         <div className={styles.activeSection}>
           <div className={styles.activeSectionHeader}>
-            <span className={styles.sectionLabel}>Active Tables</span>
-            <span className={styles.totalBadge}>{tables.length} Total</span>
+            <span className={styles.sectionLabel}>Mesas activas</span>
+            <span className={styles.totalBadge}>{tables.length} total</span>
           </div>
           <div className={styles.tableList}>
             {tables.map((t, i) => (
               <div key={t.id} className={styles.tableListItem}>
                 <span className={styles.tableListNum}>{i + 1}</span>
                 <div className={styles.tableListInfo}>
-                  <span className={styles.tableListName}>Table {t.number}</span>
+                  <span className={styles.tableListName}>Mesa {t.number}</span>
                   <span className={styles.tableListMeta}>
-                    {t.capacity} Seats · {t.zone.split(" ")[0]}
+                    {t.capacity} pax · {t.zone.split(" ")[0]}
                   </span>
                 </div>
                 <button
@@ -187,10 +187,10 @@ export default function MesasPage() {
 
         {/* Floor Plan Image */}
         <div className={styles.uploadSection}>
-          <span className={styles.sectionLabel}>Floor Plan Image</span>
+          <span className={styles.sectionLabel}>Imagen del plano</span>
           <div className={styles.uploadZone}>
             <span className={styles.uploadIcon}>↑</span>
-            <span>Change Background</span>
+            <span>Cambiar fondo</span>
           </div>
         </div>
       </aside>
@@ -232,15 +232,15 @@ export default function MesasPage() {
         <div className={styles.bottomBar}>
           <div className={styles.autosave}>
             <span className={styles.autosaveDot} />
-            Autosave enabled · Last edited 2 mins ago
+            Autoguardado activo · Última edición hace 2 min
           </div>
           <div className={styles.bottomActions}>
             <button className={styles.btnDiscard} onClick={() => setTables(INITIAL_TABLES)}>
-              Discard changes
+              Descartar cambios
             </button>
             <button className={styles.btnSave} onClick={handleSave}>
               <Save size={16} />
-              {saved ? "Saved!" : "Save Changes"}
+              {saved ? "¡Guardado!" : "Guardar cambios"}
             </button>
           </div>
         </div>

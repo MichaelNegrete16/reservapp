@@ -13,14 +13,14 @@ const OVERTIME_DATA = [
 ];
 
 const ZONES_OCCUPANCY = [
-  { name: "Main Dining Hall", pct: 92 },
-  { name: "Outdoor Terrace", pct: 65 },
-  { name: "Bar & Lounge", pct: 48 },
-  { name: "VIP Room", pct: 12 },
+  { name: "Salón principal", pct: 92 },
+  { name: "Terraza exterior", pct: 65 },
+  { name: "Barra & Lounge", pct: 48 },
+  { name: "Sala VIP", pct: 12 },
 ];
 
 const HEATMAP_HOURS = ["12 PM", "2 PM", "4 PM", "6 PM", "8 PM", "10 PM", "12 AM"];
-const HEATMAP_DAYS = ["Mon", "Wed", "Fri", "Sun"];
+const HEATMAP_DAYS = ["Lun", "Mié", "Vie", "Dom"];
 const HEATMAP_DATA: number[][] = [
   [2, 3, 4, 7, 9, 6, 2],
   [3, 4, 5, 8, 10, 7, 3],
@@ -29,10 +29,10 @@ const HEATMAP_DATA: number[][] = [
 ];
 
 const TOP_CLIENTS = [
-  { name: "Sophia Chen", visits: 42, avg: "$185.00", last: "Oct 28, 2023", status: "VIP" },
-  { name: "Marcus Johnson", visits: 38, avg: "$210.50", last: "Oct 25, 2023", status: "VIP" },
-  { name: "Elena Rodriguez", visits: 31, avg: "$155.20", last: "Oct 20, 2023", status: "Loyal" },
-  { name: "David Smith", visits: 27, avg: "$320.00", last: "Oct 19, 2023", status: "Loyal" },
+  { name: "Sofía Chen", visits: 42, avg: "$185.000", last: "28 oct, 2023", status: "VIP" },
+  { name: "Marco Johnson", visits: 38, avg: "$210.500", last: "25 oct, 2023", status: "VIP" },
+  { name: "Elena Rodríguez", visits: 31, avg: "$155.200", last: "20 oct, 2023", status: "Leal" },
+  { name: "David Smith", visits: 27, avg: "$320.000", last: "19 oct, 2023", status: "Leal" },
 ];
 
 const SPARKLINE_POINTS = [4.2, 4.5, 4.1, 4.8, 5.2, 4.9, 4.8];
@@ -55,12 +55,12 @@ export default function ReportesPage() {
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Performance Overview</h1>
-          <p className={styles.subtitle}>Real-time insights and reservation trends for the current period.</p>
+          <h1 className={styles.title}>Resumen de rendimiento</h1>
+          <p className={styles.subtitle}>Estadísticas en tiempo real y tendencias de reservas del período actual.</p>
         </div>
         <div className={styles.topActions}>
-          <button className={styles.btnFilter}>⚙ Filter Zones</button>
-          <button className={styles.btnExport}>↓ Export PDF</button>
+          <button className={styles.btnFilter}>⚙ Filtrar zonas</button>
+          <button className={styles.btnExport}>↓ Exportar PDF</button>
         </div>
       </div>
 
@@ -69,8 +69,8 @@ export default function ReportesPage() {
         {/* Reservations Over Time */}
         <div className={`${styles.card} ${styles.cardWide}`}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Reservations Over Time</h3>
-            <button className={styles.btnSmall}>Daily ▾</button>
+            <h3 className={styles.cardTitle}>Reservas a lo largo del tiempo</h3>
+            <button className={styles.btnSmall}>Diario ▾</button>
           </div>
           <div className={styles.barChart}>
             {OVERTIME_DATA.map(({ label, value }) => (
@@ -89,23 +89,24 @@ export default function ReportesPage() {
 
         {/* Status Distribution (Donut) */}
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Status Distribution</h3>
+          <h3 className={styles.cardTitle}>Distribución por estado</h3>
           <div className={styles.donutWrapper}>
             <div className={styles.donut} />
             <div className={styles.donutCenter}>
               <span className={styles.donutValue}>1,284</span>
               <span className={styles.donutLabel}>TOTAL</span>
+
             </div>
           </div>
           <div className={styles.legend}>
-            <span className={styles.legendItem}><span className={styles.legendDotOrange} /> Confirmed (75%)</span>
-            <span className={styles.legendItem}><span className={styles.legendDotLight} /> Pending (15%)</span>
+            <span className={styles.legendItem}><span className={styles.legendDotOrange} /> Confirmadas (75%)</span>
+            <span className={styles.legendItem}><span className={styles.legendDotLight} /> Pendientes (15%)</span>
           </div>
         </div>
 
         {/* Occupancy by Zone */}
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Occupancy by Zone</h3>
+          <h3 className={styles.cardTitle}>Ocupación por zona</h3>
           <div className={styles.zoneList}>
             {ZONES_OCCUPANCY.map(({ name, pct }) => (
               <div key={name} className={styles.zoneRow}>
@@ -126,7 +127,7 @@ export default function ReportesPage() {
 
         {/* Heatmap */}
         <div className={`${styles.card} ${styles.cardWide}`}>
-          <h3 className={styles.cardTitle}>Busy Hours Heatmap</h3>
+          <h3 className={styles.cardTitle}>Mapa de calor: horas pico</h3>
           <div className={styles.heatmap}>
             <div className={styles.heatmapYLabels}>
               {HEATMAP_DAYS.map((d) => <span key={d}>{d}</span>)}
@@ -153,31 +154,31 @@ export default function ReportesPage() {
         {/* No-Show Rate */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>No-Show Rate</h3>
+            <h3 className={styles.cardTitle}>Tasa de no presentación</h3>
             <span className={styles.trendBadge}>↑ +2.4%</span>
           </div>
           <div className={styles.kpiLarge}>4.8%</div>
-          <p className={styles.kpiNote}>Target is &lt; 3.0%</p>
+          <p className={styles.kpiNote}>Meta: menos del 3.0%</p>
           <svg className={styles.sparkline} viewBox="0 0 120 40">
             <path d={sparklinePath(SPARKLINE_POINTS)} fill="none" stroke="#e65100" strokeWidth="2" />
           </svg>
-          <p className={styles.sparklineLabel}>Last 30 days trend</p>
+          <p className={styles.sparklineLabel}>Tendencia últimos 30 días</p>
         </div>
 
         {/* Top Clients */}
         <div className={`${styles.card} ${styles.cardFull}`}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Top 10 High-Value Clients</h3>
-            <button className={styles.btnSmall} style={{ color: "#e65100" }}>View All</button>
+            <h3 className={styles.cardTitle}>Top 10 clientes de alto valor</h3>
+            <button className={styles.btnSmall} style={{ color: "#e65100" }}>Ver todos</button>
           </div>
           <table className={styles.clientTable}>
             <thead>
               <tr>
-                <th>Client Name</th>
-                <th>Total Visits</th>
-                <th>Avg. Spending</th>
-                <th>Last Visit</th>
-                <th>Status</th>
+                <th>Cliente</th>
+                <th>Total visitas</th>
+                <th>Gasto promedio</th>
+                <th>Última visita</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -191,7 +192,7 @@ export default function ReportesPage() {
                     <span
                       className={styles.statusBadge}
                       style={{
-                        color: c.status === "VIP" ? "#388e3c" : "#e65100",
+                        color: c.status === "VIP" || c.status === "Leal" ? (c.status === "VIP" ? "#388e3c" : "#e65100") : "#388e3c",
                         background: c.status === "VIP" ? "#e8f5e9" : "#fff3e0",
                       }}
                     >
@@ -205,7 +206,7 @@ export default function ReportesPage() {
         </div>
       </div>
 
-      <p className={styles.footer}>© 2023 ReservApp Analytics. All data refreshed as of 5 minutes ago.</p>
+      <p className={styles.footer}>© 2024 ReservApp Analytics. Datos actualizados hace 5 minutos.</p>
     </div>
   );
 }

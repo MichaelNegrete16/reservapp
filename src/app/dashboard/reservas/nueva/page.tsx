@@ -6,24 +6,22 @@ import Stepper from "@/components/Stepper";
 import styles from "./NuevaReserva.module.css";
 
 const STEPS = [
-  { num: 1, label: "Schedule" },
-  { num: 2, label: "Zone" },
-  { num: 3, label: "Details" },
-  { num: 4, label: "Confirm" },
+  { num: 1, label: "Horario" },
+  { num: 2, label: "Zona" },
+  { num: 3, label: "Datos" },
+  { num: 4, label: "Confirmar" },
 ];
 
-const TIME_SLOTS = [
-  "18:30", "19:00", "19:30", "20:00", "20:30", "21:00",
-];
+const TIME_SLOTS = ["18:30", "19:00", "19:30", "20:00", "20:30", "21:00"];
 
 const ZONES = [
-  { id: "main", name: "Main Dining Hall", desc: "Indoor, lively atmosphere, near the bar." },
-  { id: "terrace", name: "Garden Terrace", desc: "Outdoor, quiet, pet friendly area." },
-  { id: "vip", name: "VIP Room", desc: "Private and exclusive dining." },
-  { id: "bar", name: "Bar Lounge", desc: "Casual high-top seating." },
+  { id: "main",    name: "Salón principal",  desc: "Interior, ambiente animado, cerca de la barra." },
+  { id: "terrace", name: "Terraza jardín",   desc: "Exterior, tranquilo, zona pet-friendly." },
+  { id: "vip",     name: "Sala VIP",         desc: "Privado y exclusivo para grupos especiales." },
+  { id: "bar",     name: "Barra lounge",     desc: "Asientos altos, ideal para copas y snacks." },
 ];
 
-const MOTIVOS = ["Casual Dinner", "Birthday", "Anniversary", "Business", "Other"];
+const MOTIVOS = ["Cena casual", "Cumpleaños", "Aniversario", "Negocio", "Otro"];
 
 export default function NuevaReservaPage() {
   const [step, setStep] = useState(1);
@@ -34,7 +32,7 @@ export default function NuevaReservaPage() {
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [documento, setDocumento] = useState("");
-  const [motivo, setMotivo] = useState("Casual Dinner");
+  const [motivo, setMotivo] = useState("Cena casual");
   const [personas, setPersonas] = useState(2);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -57,11 +55,9 @@ export default function NuevaReservaPage() {
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
-  const monthName = today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthName = today.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
 
-  const handleComplete = () => {
-    setSuccess(true);
-  };
+  const handleComplete = () => setSuccess(true);
 
   if (success) {
     return (
@@ -70,15 +66,13 @@ export default function NuevaReservaPage() {
           <div className={styles.successIcon}>
             <CheckCircle size={64} />
           </div>
-          <h2>Reservation Confirmed!</h2>
-          <p>
-            {nombre} · {personas} people · {selectedTime}
-          </p>
+          <h2>¡Reserva confirmada!</h2>
+          <p>{nombre} · {personas} personas · {selectedTime}</p>
           <p className={styles.successZone}>
             {ZONES.find((z) => z.id === selectedZone)?.name}
           </p>
           <a href="/dashboard/reservas" className={styles.btnBack}>
-            Back to Reservations
+            Volver a reservas
           </a>
         </div>
       </div>
@@ -97,12 +91,12 @@ export default function NuevaReservaPage() {
       <Stepper steps={STEPS} current={step} />
 
       <div className={styles.content}>
-        {/* Step 1: Schedule */}
+        {/* Paso 1: Horario */}
         {step === 1 && (
           <div className={styles.stepContent}>
             <div className={styles.twoCol}>
               <div>
-                <h3 className={styles.sectionTitle}>Select Date</h3>
+                <h3 className={styles.sectionTitle}>Seleccionar fecha</h3>
                 <div className={styles.calendar}>
                   <div className={styles.calendarHeader}>
                     <button className={styles.calNavBtn}>&lt;</button>
@@ -110,7 +104,7 @@ export default function NuevaReservaPage() {
                     <button className={styles.calNavBtn}>&gt;</button>
                   </div>
                   <div className={styles.calGrid}>
-                    {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                    {["D", "L", "M", "X", "J", "V", "S"].map((d, i) => (
                       <span key={d + i} className={styles.calDayLabel}>{d}</span>
                     ))}
                     {Array.from({ length: firstDay }).map((_, i) => (
@@ -137,8 +131,8 @@ export default function NuevaReservaPage() {
 
                 {errors.date && <p style={{ color: "#e53935", fontSize: 13, margin: "8px 0 0" }}>{errors.date}</p>}
 
-              <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>
-                  Arrival Time
+                <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>
+                  Hora de llegada
                 </h3>
                 <div className={styles.timeSlots}>
                   {TIME_SLOTS.map((t) => (
@@ -154,7 +148,7 @@ export default function NuevaReservaPage() {
               </div>
 
               <div>
-                <h3 className={styles.sectionTitle}>Select Seating Zone</h3>
+                <h3 className={styles.sectionTitle}>Seleccionar zona</h3>
                 <div className={styles.zoneCards}>
                   {ZONES.map((z) => (
                     <div
@@ -167,7 +161,7 @@ export default function NuevaReservaPage() {
                         <span className={styles.zoneName}>{z.name}</span>
                         <span className={styles.zoneDesc}>{z.desc}</span>
                         {selectedZone === z.id && (
-                          <span className={styles.zoneSelected}>✓ SELECTED</span>
+                          <span className={styles.zoneSelected}>✓ SELECCIONADO</span>
                         )}
                       </div>
                     </div>
@@ -178,53 +172,53 @@ export default function NuevaReservaPage() {
           </div>
         )}
 
-        {/* Step 2: Customer Details */}
+        {/* Paso 2: Datos del cliente */}
         {step === 2 && (
           <div className={styles.stepContent}>
-            <h3 className={styles.sectionTitle}>Customer Information</h3>
+            <h3 className={styles.sectionTitle}>Datos del cliente</h3>
             <div className={styles.formGrid}>
               <div className={styles.field}>
-                <label className={styles.label}>FULL NAME</label>
+                <label className={styles.label}>NOMBRE COMPLETO</label>
                 <input
                   className={`${styles.input} ${errors.nombre ? styles.inputError : ""}`}
-                  placeholder="John Doe"
+                  placeholder="Juan Pérez"
                   value={nombre}
                   onChange={(e) => { setNombre(e.target.value); setErrors((p) => ({ ...p, nombre: "" })); }}
                 />
                 {errors.nombre && <span className={styles.fieldError}>{errors.nombre}</span>}
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>PHONE NUMBER</label>
+                <label className={styles.label}>TELÉFONO</label>
                 <input
                   className={`${styles.input} ${errors.telefono ? styles.inputError : ""}`}
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+57 300 000 0000"
                   value={telefono}
                   onChange={(e) => { setTelefono(e.target.value); setErrors((p) => ({ ...p, telefono: "" })); }}
                 />
                 {errors.telefono && <span className={styles.fieldError}>{errors.telefono}</span>}
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label className={styles.label}>EMAIL ADDRESS</label>
+                <label className={styles.label}>CORREO ELECTRÓNICO</label>
                 <input
                   className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
                   type="email"
-                  placeholder="john@example.com"
+                  placeholder="juan@ejemplo.com"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
                 />
                 {errors.email && <span className={styles.fieldError}>{errors.email}</span>}
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>DOCUMENT ID</label>
+                <label className={styles.label}>DOCUMENTO</label>
                 <input
                   className={styles.input}
-                  placeholder="ID / Passport"
+                  placeholder="Cédula / Pasaporte"
                   value={documento}
                   onChange={(e) => setDocumento(e.target.value)}
                 />
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>MOTIVE</label>
+                <label className={styles.label}>MOTIVO</label>
                 <select
                   className={styles.input}
                   value={motivo}
@@ -238,7 +232,7 @@ export default function NuevaReservaPage() {
             </div>
 
             <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>
-              Party Size
+              Número de personas
             </h3>
             <div className={styles.personasSelector}>
               <button
@@ -258,51 +252,43 @@ export default function NuevaReservaPage() {
           </div>
         )}
 
-        {/* Step 3: Confirm */}
+        {/* Paso 3: Resumen */}
         {step === 3 && (
           <div className={styles.stepContent}>
-            <h3 className={styles.sectionTitle}>Reservation Summary</h3>
+            <h3 className={styles.sectionTitle}>Resumen de la reserva</h3>
             <div className={styles.summary}>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Date</span>
-                <span className={styles.summaryValue}>
-                  {selectedDate || "Not selected"}
-                </span>
+                <span className={styles.summaryLabel}>Fecha</span>
+                <span className={styles.summaryValue}>{selectedDate || "No seleccionada"}</span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Time</span>
+                <span className={styles.summaryLabel}>Hora</span>
                 <span className={styles.summaryValue}>{selectedTime}</span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Zone</span>
+                <span className={styles.summaryLabel}>Zona</span>
                 <span className={styles.summaryValue}>
                   {ZONES.find((z) => z.id === selectedZone)?.name}
                 </span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Party Size</span>
-                <span className={styles.summaryValue}>{personas} people</span>
+                <span className={styles.summaryLabel}>Personas</span>
+                <span className={styles.summaryValue}>{personas} personas</span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Guest</span>
-                <span className={styles.summaryValue}>
-                  {nombre || "Not provided"}
-                </span>
+                <span className={styles.summaryLabel}>Cliente</span>
+                <span className={styles.summaryValue}>{nombre || "No indicado"}</span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Phone</span>
-                <span className={styles.summaryValue}>
-                  {telefono || "Not provided"}
-                </span>
+                <span className={styles.summaryLabel}>Teléfono</span>
+                <span className={styles.summaryValue}>{telefono || "No indicado"}</span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Email</span>
-                <span className={styles.summaryValue}>
-                  {email || "Not provided"}
-                </span>
+                <span className={styles.summaryLabel}>Correo</span>
+                <span className={styles.summaryValue}>{email || "No indicado"}</span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Motive</span>
+                <span className={styles.summaryLabel}>Motivo</span>
                 <span className={styles.summaryValue}>{motivo}</span>
               </div>
             </div>
@@ -310,22 +296,21 @@ export default function NuevaReservaPage() {
         )}
       </div>
 
-      {/* Bottom Bar */}
       <div className={styles.bottomBar}>
         {step > 1 ? (
           <button className={styles.btnBackNav} onClick={() => setStep(step - 1)}>
-            <ArrowLeft size={16} /> Back
+            <ArrowLeft size={16} /> Atrás
           </button>
         ) : (
           <div />
         )}
         {step < 3 ? (
           <button className={styles.btnNext} onClick={() => { if (validateStep()) setStep(step + 1); }}>
-            Continue <ArrowRight size={16} />
+            Continuar <ArrowRight size={16} />
           </button>
         ) : (
           <button className={styles.btnComplete} onClick={() => { if (validateStep()) handleComplete(); }}>
-            Complete Reservation <ArrowRight size={16} />
+            Confirmar reserva <ArrowRight size={16} />
           </button>
         )}
       </div>

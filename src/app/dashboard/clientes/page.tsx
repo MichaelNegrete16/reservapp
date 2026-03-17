@@ -21,23 +21,24 @@ interface Cliente {
 type Tab = "all" | "vip" | "frequent" | "blacklist";
 
 const CLIENTES: Cliente[] = [
-  { id: "c1", name: "John Doe", initials: "JD", phone: "+1 (234) 567-8901", email: "john.doe@example.com", visits: 24, lastVisit: "Oct 24, 2023", tags: ["VIP", "Loyal"], avatarColor: "#e3f2fd", notes: "Prefers Table 4. Always orders the vintage Red Wine selection. Allergic to pine nuts.", birthday: "March 12, 1985" },
-  { id: "c2", name: "Sarah Miller", initials: "SM", phone: "+1 (555) 123-4567", email: "sarah.m@gmail.com", visits: 12, lastVisit: "Oct 20, 2023", tags: ["Frequent"], avatarColor: "#fce4ec", notes: "Vegetarian. Prefers quiet tables.", birthday: "July 5, 1990" },
-  { id: "c3", name: "Robert Wilson", initials: "RW", phone: "+1 (415) 888-9900", email: "robert.wilson@outlook.com", visits: 2, lastVisit: "Sep 15, 2023", tags: ["Blacklist"], avatarColor: "#e8f5e9", notes: "Incident on last visit. Handle with care.", birthday: "—" },
-  { id: "c4", name: "Emma Knight", initials: "EK", phone: "+1 (650) 444-5555", email: "emma.k@company.com", visits: 8, lastVisit: "Oct 22, 2023", tags: ["Frequent"], avatarColor: "#fff3e0", notes: "Corporate client. Prefers private area.", birthday: "Nov 3, 1988" },
-  { id: "c5", name: "Carlos Méndez", initials: "CM", phone: "+1 (305) 777-2233", email: "c.mendez@mail.com", visits: 31, lastVisit: "Oct 25, 2023", tags: ["VIP", "Frequent"], avatarColor: "#f3e5f5", notes: "Sommelier recommendations appreciated.", birthday: "Jan 18, 1975" },
+  { id: "c1", name: "Juan Pérez", initials: "JP", phone: "+57 (234) 567-8901", email: "juan.perez@ejemplo.com", visits: 24, lastVisit: "24 oct, 2023", tags: ["VIP", "Leal"], avatarColor: "#e3f2fd", notes: "Prefiere la mesa 4. Siempre pide la selección de vino tinto reserva. Alérgico a los piñones.", birthday: "12 de marzo, 1985" },
+  { id: "c2", name: "Sara Milán", initials: "SM", phone: "+57 (555) 123-4567", email: "sara.milan@gmail.com", visits: 12, lastVisit: "20 oct, 2023", tags: ["Frecuente"], avatarColor: "#fce4ec", notes: "Vegetariana. Prefiere mesas tranquilas.", birthday: "5 de julio, 1990" },
+  { id: "c3", name: "Roberto Wilson", initials: "RW", phone: "+57 (415) 888-9900", email: "r.wilson@outlook.com", visits: 2, lastVisit: "15 sep, 2023", tags: ["Lista negra"], avatarColor: "#e8f5e9", notes: "Incidente en la última visita. Tratar con cuidado.", birthday: "—" },
+  { id: "c4", name: "Emma Knight", initials: "EK", phone: "+57 (650) 444-5555", email: "emma.k@empresa.com", visits: 8, lastVisit: "22 oct, 2023", tags: ["Frecuente"], avatarColor: "#fff3e0", notes: "Cliente corporativo. Prefiere zona privada.", birthday: "3 de nov, 1988" },
+  { id: "c5", name: "Carlos Méndez", initials: "CM", phone: "+57 (305) 777-2233", email: "c.mendez@mail.com", visits: 31, lastVisit: "25 oct, 2023", tags: ["VIP", "Frecuente"], avatarColor: "#f3e5f5", notes: "Aprecia las recomendaciones del sommelier.", birthday: "18 de enero, 1975" },
 ];
 
 const TAG_COLORS: Record<string, { color: string; bg: string }> = {
   VIP: { color: "#c2185b", bg: "#fce4ec" },
-  Loyal: { color: "#e65100", bg: "#fff3e0" },
+  Leal: { color: "#e65100", bg: "#fff3e0" },
+  Frecuente: { color: "#1565c0", bg: "#e3f2fd" },
   Frequent: { color: "#1565c0", bg: "#e3f2fd" },
-  Blacklist: { color: "#d32f2f", bg: "#ffebee" },
+  "Lista negra": { color: "#d32f2f", bg: "#ffebee" },
 };
 
 const RECENT_BOOKINGS = [
-  { date: "OCT 24", title: "Dinner for 4", time: "Completed · 8:30 PM", amount: "$420.00" },
-  { date: "SEP 12", title: "Lunch for 2", time: "Completed · 1:00 PM", amount: "$125.50" },
+  { date: "OCT 24", title: "Cena para 4", time: "Completada · 8:30 PM", amount: "$420.000" },
+  { date: "SEP 12", title: "Almuerzo para 2", time: "Completada · 1:00 PM", amount: "$125.500" },
 ];
 
 export default function ClientesPage() {
@@ -49,8 +50,8 @@ export default function ClientesPage() {
     const matchTab =
       tab === "all" ||
       (tab === "vip" && c.tags.includes("VIP")) ||
-      (tab === "frequent" && c.tags.includes("Frequent")) ||
-      (tab === "blacklist" && c.tags.includes("Blacklist"));
+      (tab === "frequent" && (c.tags.includes("Frecuente") || c.tags.includes("Frequent"))) ||
+      (tab === "blacklist" && c.tags.includes("Lista negra"));
     const matchSearch =
       !search ||
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -68,14 +69,14 @@ export default function ClientesPage() {
             <Search size={16} className={styles.searchIcon} />
             <input
               className={styles.searchInput}
-              placeholder="Search customers by name, email or phone"
+              placeholder="Buscar por nombre, correo o teléfono"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className={styles.topActions}>
             <button className={styles.btnExport}>
-              <FileSpreadsheet size={16} /> Export Excel
+              <FileSpreadsheet size={16} /> Exportar Excel
             </button>
             <button className={styles.btnAdd}>
               <Plus size={16} />
@@ -85,8 +86,8 @@ export default function ClientesPage() {
 
         {/* Page Title */}
         <div className={styles.pageHeader}>
-          <h1 className={styles.title}>Customer Database</h1>
-          <p className={styles.subtitle}>View and manage your guest relationships and history.</p>
+          <h1 className={styles.title}>Base de clientes</h1>
+          <p className={styles.subtitle}>Visualiza y gestiona las relaciones e historial de tus clientes.</p>
         </div>
 
         {/* Tabs */}
@@ -97,7 +98,7 @@ export default function ClientesPage() {
               className={`${styles.tab} ${tab === t ? styles.tabActive : ""}`}
               onClick={() => setTab(t)}
             >
-              {t === "all" ? "All Customers" : t === "vip" ? "VIP Only" : t === "frequent" ? "Frequent" : "Blacklist"}
+              {t === "all" ? "Todos" : t === "vip" ? "Solo VIP" : t === "frequent" ? "Frecuentes" : "Lista negra"}
             </button>
           ))}
         </div>
@@ -107,12 +108,12 @@ export default function ClientesPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Visits</th>
-                <th>Last Visit</th>
-                <th>Tags</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Visitas</th>
+                <th>Última visita</th>
+                <th>Etiquetas</th>
               </tr>
             </thead>
             <tbody>
@@ -166,7 +167,7 @@ export default function ClientesPage() {
             </div>
             <div className={styles.drawerTitleInfo}>
               <h3 className={styles.drawerName}>{selected.name}</h3>
-              <span className={styles.drawerIdLine}>Customer ID: #R99283</span>
+              <span className={styles.drawerIdLine}>ID cliente: #R99283</span>
               <div className={styles.drawerTags}>
                 {selected.tags.map((tag) => (
                   <span key={tag} className={styles.tagPill} style={{
@@ -185,8 +186,8 @@ export default function ClientesPage() {
 
           <div className={styles.drawerSection}>
             <div className={styles.drawerSectionHeader}>
-              <span className={styles.drawerSectionLabel}>Tags Editor</span>
-              <button className={styles.drawerEditBtn}><Plus size={14} /> Edit</button>
+              <span className={styles.drawerSectionLabel}>Editor de etiquetas</span>
+              <button className={styles.drawerEditBtn}><Plus size={14} /> Editar</button>
             </div>
             <div className={styles.drawerTags}>
               {selected.tags.map((tag) => (
@@ -201,7 +202,7 @@ export default function ClientesPage() {
           </div>
 
           <div className={styles.drawerSection}>
-            <span className={styles.drawerSectionLabel}>Contact Information</span>
+            <span className={styles.drawerSectionLabel}>Información de contacto</span>
             <div className={styles.contactRows}>
               <div className={styles.contactRow}>📞 <span>{selected.phone}</span></div>
               <div className={styles.contactRow}>✉️ <span>{selected.email}</span></div>
@@ -210,20 +211,20 @@ export default function ClientesPage() {
           </div>
 
           <div className={styles.drawerSection}>
-            <span className={styles.drawerSectionLabel}>Staff Notes</span>
+            <span className={styles.drawerSectionLabel}>Notas del equipo</span>
             <div className={styles.notesBox}>
               <p className={styles.notesText}>&quot;{selected.notes}&quot;</p>
               <div className={styles.notesFooter}>
-                <span>Last updated by Manager Alex</span>
-                <button className={styles.drawerEditBtn}>Edit Note</button>
+                <span>Última actualización por Manager Alex</span>
+                <button className={styles.drawerEditBtn}>Editar nota</button>
               </div>
             </div>
           </div>
 
           <div className={styles.drawerSection}>
             <div className={styles.drawerSectionHeader}>
-              <span className={styles.drawerSectionLabel}>Recent Bookings</span>
-              <button className={styles.drawerEditBtn}>See All</button>
+              <span className={styles.drawerSectionLabel}>Reservas recientes</span>
+              <button className={styles.drawerEditBtn}>Ver todas</button>
             </div>
             {RECENT_BOOKINGS.map((b) => (
               <div key={b.title} className={styles.bookingRow}>
@@ -240,7 +241,7 @@ export default function ClientesPage() {
             ))}
           </div>
 
-          <button className={styles.btnCreateReservation}>Create Reservation</button>
+          <button className={styles.btnCreateReservation}>Crear reserva</button>
         </aside>
       )}
     </div>

@@ -6,9 +6,9 @@ import { ArrowRight, Upload, Settings, X } from "lucide-react";
 import styles from "./Registro.module.css";
 
 const STEPS = [
-  { num: 1, label: "Account" },
-  { num: 2, label: "Restaurant" },
-  { num: 3, label: "Config" },
+  { num: 1, label: "Cuenta" },
+  { num: 2, label: "Restaurante" },
+  { num: 3, label: "Configuración" },
 ];
 
 const ZONAS_DEFAULT = ["Terraza", "Salón Principal", "Barra", "VIP", "Jardín"];
@@ -16,17 +16,14 @@ const ZONAS_DEFAULT = ["Terraza", "Salón Principal", "Barra", "VIP", "Jardín"]
 export default function RegistroPage() {
   const [step, setStep] = useState(1);
 
-  // Step 1
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Step 2
   const [restaurantName, setRestaurantName] = useState("");
   const [address, setAddress] = useState("");
 
-  // Step 3
   const [zonas, setZonas] = useState<string[]>(["Terraza"]);
   const [turnoAlmuerzo, setTurnoAlmuerzo] = useState(true);
   const [turnoCena, setTurnoCena] = useState(true);
@@ -66,80 +63,66 @@ export default function RegistroPage() {
 
   return (
     <div className={styles.page}>
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <span className={styles.logo}>✕</span>
           <span className={styles.brand}>ReservApp</span>
         </div>
         <div className={styles.headerRight}>
-          <span>Already have an account?</span>
+          <span>¿Ya tienes una cuenta?</span>
           <Link href="/login" className={styles.signInBtn}>
-            Sign In
+            Iniciar sesión
           </Link>
         </div>
       </header>
 
-      {/* Stepper */}
       <div className={styles.stepper}>
         {STEPS.map(({ num, label }) => (
           <div key={num} className={styles.stepWrapper}>
-            <div
-              className={`${styles.stepCircle} ${
-                step >= num ? styles.stepActive : ""
-              }`}
-            >
+            <div className={`${styles.stepCircle} ${step >= num ? styles.stepActive : ""}`}>
               {num}
             </div>
-            <span
-              className={`${styles.stepLabel} ${
-                step >= num ? styles.stepLabelActive : ""
-              }`}
-            >
+            <span className={`${styles.stepLabel} ${step >= num ? styles.stepLabelActive : ""}`}>
               {label}
             </span>
             {num < 3 && (
-              <div
-                className={`${styles.stepLine} ${
-                  step > num ? styles.stepLineActive : ""
-                }`}
-              />
+              <div className={`${styles.stepLine} ${step > num ? styles.stepLineActive : ""}`} />
             )}
           </div>
         ))}
       </div>
 
-      {/* Step 1: Account */}
+      {/* Paso 1: Cuenta */}
       {step === 1 && (
         <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Create your account</h2>
+          <h2 className={styles.cardTitle}>Crea tu cuenta</h2>
           <p className={styles.cardDesc}>
-            Join thousands of restaurants managing their bookings with ReservApp.
+            Únete a miles de restaurantes que gestionan sus reservas con ReservApp.
           </p>
           <div className={styles.formGrid}>
             <div className={styles.field}>
-              <label className={styles.label}>Full Name</label>
+              <label className={styles.label}>Nombre completo</label>
               <input
                 className={`${styles.input} ${errors.nombre ? styles.inputError : ""}`}
-                placeholder="John Doe"
+                placeholder="Juan Pérez"
                 value={nombre}
                 onChange={(e) => { setNombre(e.target.value); setErrors((p) => ({ ...p, nombre: "" })); }}
               />
               {errors.nombre && <span className={styles.fieldError}>{errors.nombre}</span>}
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Email Address</label>
+              <label className={styles.label}>Correo electrónico</label>
               <input
                 className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
                 type="email"
-                placeholder="john@example.com"
+                placeholder="juan@ejemplo.com"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: "" })); }}
               />
               {errors.email && <span className={styles.fieldError}>{errors.email}</span>}
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Password</label>
+              <label className={styles.label}>Contraseña</label>
               <input
                 className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
                 type="password"
@@ -150,7 +133,7 @@ export default function RegistroPage() {
               {errors.password && <span className={styles.fieldError}>{errors.password}</span>}
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Confirm Password</label>
+              <label className={styles.label}>Confirmar contraseña</label>
               <input
                 className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ""}`}
                 type="password"
@@ -163,33 +146,31 @@ export default function RegistroPage() {
           </div>
           <div className={styles.cardActions}>
             <button className={styles.btnNext} onClick={handleNext}>
-              Next Step <ArrowRight size={16} />
+              Siguiente <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 2: Restaurant */}
+      {/* Paso 2: Restaurante */}
       {step === 2 && (
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
-              <h2 className={styles.cardTitle}>Restaurant Profile</h2>
-              <p className={styles.cardDesc}>
-                Details about your establishment.
-              </p>
+              <h2 className={styles.cardTitle}>Perfil del restaurante</h2>
+              <p className={styles.cardDesc}>Datos de tu establecimiento.</p>
             </div>
             <Upload size={24} className={styles.cardIcon} />
           </div>
 
           <div className={styles.uploadZone}>
             <Upload size={28} className={styles.uploadIcon} />
-            <p>Drag & Drop Restaurant Logo</p>
+            <p>Arrastra el logo del restaurante aquí</p>
           </div>
 
           <div className={styles.formGrid}>
             <div className={styles.field}>
-              <label className={styles.label}>Restaurant Name</label>
+              <label className={styles.label}>Nombre del restaurante</label>
               <input
                 className={`${styles.input} ${errors.restaurantName ? styles.inputError : ""}`}
                 placeholder="La Trattoria"
@@ -199,7 +180,7 @@ export default function RegistroPage() {
               {errors.restaurantName && <span className={styles.fieldError}>{errors.restaurantName}</span>}
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Address</label>
+              <label className={styles.label}>Dirección</label>
               <input
                 className={styles.input}
                 placeholder="Calle Principal 123"
@@ -209,41 +190,34 @@ export default function RegistroPage() {
             </div>
           </div>
           <div className={styles.cardActions}>
-            <button
-              className={styles.btnBack}
-              onClick={() => setStep(step - 1)}
-            >
-              Back
+            <button className={styles.btnBack} onClick={() => setStep(step - 1)}>
+              Atrás
             </button>
             <button className={styles.btnNext} onClick={handleNext}>
-              Next Step <ArrowRight size={16} />
+              Siguiente <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 3: Config */}
+      {/* Paso 3: Configuración inicial */}
       {step === 3 && (
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
-              <h2 className={styles.cardTitle}>Initial Configuration</h2>
-              <p className={styles.cardDesc}>
-                Define your zones and shifts.
-              </p>
+              <h2 className={styles.cardTitle}>Configuración inicial</h2>
+              <p className={styles.cardDesc}>Define tus zonas y turnos de atención.</p>
             </div>
             <Settings size={24} className={styles.cardIcon} />
           </div>
 
           <div className={styles.section}>
-            <label className={styles.label}>Zones</label>
+            <label className={styles.label}>Zonas</label>
             <div className={styles.chips}>
               {ZONAS_DEFAULT.map((z) => (
                 <button
                   key={z}
-                  className={`${styles.chip} ${
-                    zonas.includes(z) ? styles.chipActive : ""
-                  }`}
+                  className={`${styles.chip} ${zonas.includes(z) ? styles.chipActive : ""}`}
                   onClick={() => { toggleZona(z); setErrors((p) => ({ ...p, zonas: "" })); }}
                 >
                   {z}
@@ -255,47 +229,34 @@ export default function RegistroPage() {
           </div>
 
           <div className={styles.section}>
-            <label className={styles.label}>Shifts</label>
+            <label className={styles.label}>Turnos</label>
             <div className={styles.shifts}>
               <label className={styles.shiftToggle}>
-                <input
-                  type="checkbox"
-                  checked={turnoAlmuerzo}
-                  onChange={() => setTurnoAlmuerzo(!turnoAlmuerzo)}
-                />
-                <span>Lunch (12:00 - 16:00)</span>
+                <input type="checkbox" checked={turnoAlmuerzo} onChange={() => setTurnoAlmuerzo(!turnoAlmuerzo)} />
+                <span>Almuerzo (12:00 - 16:00)</span>
               </label>
               <label className={styles.shiftToggle}>
-                <input
-                  type="checkbox"
-                  checked={turnoCena}
-                  onChange={() => setTurnoCena(!turnoCena)}
-                />
-                <span>Dinner (18:00 - 23:00)</span>
+                <input type="checkbox" checked={turnoCena} onChange={() => setTurnoCena(!turnoCena)} />
+                <span>Cena (18:00 - 23:00)</span>
               </label>
             </div>
           </div>
 
           <div className={styles.cardActions}>
-            <button
-              className={styles.btnBack}
-              onClick={() => setStep(step - 1)}
-            >
-              Back
-            </button>
+            <button className={styles.btnBack} onClick={() => setStep(step - 1)}>Atrás</button>
             <button className={styles.btnNext} onClick={handleNext}>
-              Complete Setup <ArrowRight size={16} />
+              Finalizar registro <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
       <footer className={styles.footer}>
-        <p>© 2024 ReservApp. All rights reserved.</p>
+        <p>© 2024 ReservApp. Todos los derechos reservados.</p>
         <div className={styles.footerLinks}>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-          <a href="#">Help Center</a>
+          <a href="#">Política de privacidad</a>
+          <a href="#">Términos de servicio</a>
+          <a href="#">Centro de ayuda</a>
         </div>
       </footer>
     </div>
