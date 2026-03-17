@@ -1,0 +1,638 @@
+/* ===== Layout ===== */
+.page {
+  padding: 24px;
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+/* ===== Top Bar ===== */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.topBarLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ===== Filters ===== */
+.filterSelect {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ===== View Tabs (Segmented Button) ===== */
+.viewTabs {
+  display: flex;
+  background: #e9ecef;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.viewTab {
+  padding: 7px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.viewTab:hover {
+  color: #333;
+}
+
+.viewTabActive {
+  background: #fff;
+  color: #c2185b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+/* ===== Excel Button ===== */
+.btnExcel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #217346;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.btnExcel:hover {
+  background: #1b5e38;
+}
+
+/* ===== KPIs ===== */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.kpiCard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpiCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.kpiCard[data-color="blue"]::before {
+  background: #1976d2;
+}
+
+.kpiCard[data-color="green"]::before {
+  background: #388e3c;
+}
+
+.kpiCard[data-color="orange"]::before {
+  background: #f57c00;
+}
+
+.kpiCard[data-color="purple"]::before {
+  background: #7b1fa2;
+}
+
+.kpiLabel {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.kpiValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* ===== Flujo Operativo Layout ===== */
+.flujoLayout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+/* ===== Reservation List (Left Column) ===== */
+.listaReservas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.grupoEstado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grupoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grupoDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.reservaCard {
+  background: #fff;
+  border: 1.5px solid #e9ecef;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.reservaCard:hover {
+  border-color: #ccc;
+}
+
+.reservaCardSelected {
+  background: #fce4ec;
+  border-color: #c2185b;
+}
+
+.reservaCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.reservaNombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.badgePersonas {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fce4ec;
+  color: #c2185b;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reservaInfo {
+  font-size: 12px;
+  color: #888;
+}
+
+.reservaAcciones {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.btnAccion {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.btnAccionPrimary {
+  background: #c2185b;
+  color: #fff;
+  border: none;
+}
+
+.btnAccionPrimary:hover {
+  background: #ad1457;
+}
+
+.btnAccionOutline {
+  background: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.btnAccionOutline:hover {
+  border-color: #999;
+  color: #333;
+}
+
+/* ===== Detail Panel ===== */
+.detailPanel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  margin-top: 16px;
+}
+
+.detailTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detailLabel {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.detailValue {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+
+/* ===== Floor Plan Placeholder ===== */
+.floorPlan {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 24px;
+}
+
+.floorPlanPlaceholder {
+  text-align: center;
+  color: #ccc;
+}
+
+.floorPlanPlaceholder svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.floorPlanPlaceholder p {
+  font-size: 14px;
+  color: #aaa;
+}
+
+/* ===== TablaReservas ===== */
+.tablaWrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla thead th {
+  background: #f8f9fa;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tabla tbody tr {
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tabla tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.tabla tbody tr:last-child {
+  border-bottom: none;
+}
+
+.tabla tbody td {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #333;
+}
+
+.tablaRowSelected {
+  background: #fce4ec !important;
+}
+
+.tablaRowEspera {
+  background: #fff8e1 !important;
+  border-left: 3px solid #f57f17;
+}
+
+/* ===== Estado Badge ===== */
+.estadoBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ===== Lista de espera section ===== */
+.listaEspera {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.listaEsperaTitulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f57f17;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* ===== Modal Overlay ===== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 440px;
+  max-width: 95vw;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.2s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+  padding: 4px;
+  line-height: 1;
+  display: flex;
+  font-family: inherit;
+}
+
+.modalClose:hover {
+  color: #333;
+}
+
+.modalBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.radioOption input[type="radio"] {
+  accent-color: #c2185b;
+  width: 16px;
+  height: 16px;
+}
+
+.dateRange {
+  display: flex;
+  gap: 12px;
+  padding-left: 26px;
+}
+
+.errorMsg {
+  color: #d32f2f;
+  font-size: 13px;
+  padding-left: 26px;
+  margin: 0;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+}
+
+.btnCancel {
+  padding: 8px 18px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #666;
+  font-family: inherit;
+}
+
+.btnCancel:hover {
+  border-color: #999;
+}
+
+.btnDownload {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #217346;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btnDownload:hover:not(:disabled) {
+  background: #1b5e38;
+}
+
+.btnDownload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Detail Panel (Listado General) ===== */
+.detailPanelCentered {
+  max-width: 500px;
+  margin: 16px auto 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .flujoLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .topBarRight {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dateRange {
+    flex-direction: column;
+  }
+}
