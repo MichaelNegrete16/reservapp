@@ -1,0 +1,369 @@
+.page {
+  padding: 28px;
+  font-family: "Inter", system-ui, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.header { margin-bottom: 32px; }
+
+.title {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+}
+
+/* Sections */
+.section { margin-bottom: 36px; }
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionIcon { font-size: 20px; }
+
+/* Turnos */
+.turnosGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.turnoCard {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.turnoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.activeChip {
+  background: #e8f5e9;
+  color: #388e3c;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  padding: 4px;
+}
+
+.editBtn:hover { color: #555; }
+
+.turnoName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px;
+}
+
+.turnoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.turnoRow:last-of-type { border-bottom: none; }
+
+.turnoLabel { font-size: 13px; color: #999; }
+.turnoValue { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+
+.turnoStripes {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    #f5f5f5 8px,
+    #f5f5f5 16px
+  );
+  opacity: 0.5;
+}
+
+.addTurnoBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 20px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 160px;
+  transition: border-color 0.15s;
+}
+
+.addTurnoBtn:hover { border-color: #e65100; color: #e65100; }
+
+/* Weekly */
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.dayCard {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dayCardClosed {
+  background: #fafafa;
+  opacity: 0.7;
+}
+
+.dayLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 0.5px;
+}
+
+.dayStatus {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dayOpen { color: #e65100; }
+.dayClosed { color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Holidays */
+.holidaysGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.calendarPanel,
+.closuresPanel {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.calPanelTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #1a1a1a;
+}
+
+.calendar {}
+
+.calHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.calMonth { font-size: 14px; font-weight: 700; }
+
+.calNavBtn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #999;
+  padding: 2px 6px;
+}
+
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.calDayLabel {
+  font-size: 11px;
+  color: #bbb;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.calDay {
+  aspect-ratio: 1;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calDay:hover:not(:disabled) { background: #f5f5f5; }
+
+.calDaySelected { background: #e65100 !important; color: #fff !important; }
+.calDayToday { background: #fff3e0; color: #e65100; font-weight: 700; }
+
+/* Holiday chips */
+.holidayChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.holidayChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #444;
+  font-weight: 500;
+}
+
+.holidayRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  display: flex;
+  padding: 0;
+}
+
+.holidayRemove:hover { color: #d32f2f; }
+
+.addCustomBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px dashed #e65100;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e65100;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.infoNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #1565c0;
+}
+
+.infoIcon { flex-shrink: 0; font-size: 16px; }
+
+/* Bottom Bar */
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #e9ecef;
+  padding: 14px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 50;
+}
+
+.changesNote {
+  display: flex;
+  flex-direction: column;
+}
+
+.changesLabel {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.changesText { font-size: 13px; color: #555; }
+
+.bottomActions { display: flex; gap: 10px; }
+
+.btnDiscard {
+  padding: 9px 20px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btnSave {
+  padding: 9px 20px;
+  background: #e65100;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+@media (max-width: 900px) {
+  .turnosGrid { grid-template-columns: 1fr; }
+  .weekGrid { grid-template-columns: repeat(4, 1fr); }
+  .holidaysGrid { grid-template-columns: 1fr; }
+  .bottomBar { left: 0; }
+}

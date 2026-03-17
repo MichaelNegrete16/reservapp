@@ -1,0 +1,271 @@
+.page {
+  padding: 28px;
+  font-family: "Inter", system-ui, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+  max-width: 520px;
+}
+
+.btnAdd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: #e65100;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btnAdd:hover { background: #bf360c; }
+
+/* KPIs */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpiCard {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.kpiCardOrange {
+  border-left: 4px solid #e65100;
+}
+
+.kpiLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.kpiValue {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.kpiGreen { color: #388e3c; }
+.kpiOrange { color: #e65100; }
+
+/* Table */
+.tableCard {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #f5f5f5;
+  transition: background 0.1s;
+}
+
+.table tbody tr:hover { background: #fafafa; }
+.table tbody tr:last-child { border-bottom: none; }
+.table tbody td {
+  padding: 16px;
+  font-size: 14px;
+  color: #333;
+  vertical-align: middle;
+}
+
+.rowInactive { opacity: 0.55; }
+
+.zoneIcon {
+  font-size: 22px;
+}
+
+.zoneName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.zoneMeta {
+  font-size: 12px;
+  color: #999;
+}
+
+.zoneDesc {
+  font-size: 13px;
+  color: #666;
+  max-width: 320px;
+}
+
+.capacityBadge {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+}
+
+.actionBtn:hover { border-color: #999; color: #333; }
+.actionBtnDanger:hover { border-color: #d32f2f; color: #d32f2f; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.paginationInfo {
+  font-size: 13px;
+  color: #888;
+}
+
+.pageButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.pageBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #555;
+  font-family: inherit;
+}
+
+.pageBtn:disabled { opacity: 0.4; cursor: default; }
+.pageBtnActive { background: #e65100; color: #fff; border-color: #e65100; }
+
+/* Modal */
+.modalForm { display: flex; flex-direction: column; gap: 14px; }
+
+.modalRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.modalField { display: flex; flex-direction: column; gap: 6px; }
+
+.modalLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.modalInput {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+.modalInput:focus { border-color: #e65100; }
+
+.modalTextarea {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+}
+.modalTextarea:focus { border-color: #e65100; }
+
+.btnCancel {
+  padding: 9px 18px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btnSave {
+  padding: 9px 18px;
+  background: #e65100;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+@media (max-width: 900px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+}

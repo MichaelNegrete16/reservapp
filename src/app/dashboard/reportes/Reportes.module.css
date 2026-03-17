@@ -1,0 +1,332 @@
+.page {
+  padding: 28px;
+  font-family: "Inter", system-ui, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+}
+
+.topActions { display: flex; gap: 8px; }
+
+.btnFilter, .btnExport {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btnFilter {
+  background: #fff;
+  border: 1px solid #ddd;
+  color: #555;
+}
+
+.btnExport {
+  background: #e65100;
+  color: #fff;
+  border: none;
+}
+
+.btnExport:hover { background: #bf360c; }
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.cardWide { grid-column: 1; }
+.cardFull { grid-column: 1 / -1; }
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.btnSmall {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #888;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Bar Chart */
+.barChart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  height: 180px;
+  padding-top: 20px;
+}
+
+.barCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.bar {
+  width: 100%;
+  background: #fbe3d3;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  min-height: 8px;
+  transition: height 0.3s;
+}
+
+.barDot {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e65100;
+}
+
+.barLabel { font-size: 11px; color: #aaa; white-space: nowrap; }
+
+/* Donut */
+.donutWrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0;
+  height: 140px;
+}
+
+.donut {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #e65100 0% 75%,
+    #fbe3d3 75% 90%,
+    #e9ecef 90% 100%
+  );
+}
+
+.donutCenter {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.donutValue { font-size: 22px; font-weight: 800; color: #1a1a1a; }
+.donutLabel { font-size: 11px; color: #aaa; letter-spacing: 0.5px; }
+
+/* Donut inner mask */
+.donut::after {
+  content: "";
+  display: block;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.donut {
+  position: relative;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+}
+
+.legendItem { display: flex; align-items: center; gap: 6px; }
+.legendDotOrange { width: 10px; height: 10px; border-radius: 50%; background: #e65100; }
+.legendDotLight { width: 10px; height: 10px; border-radius: 50%; background: #fbe3d3; }
+
+/* Zone bars */
+.zoneList { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+
+.zoneRow { display: flex; flex-direction: column; gap: 6px; }
+
+.zoneRowHeader {
+  display: flex;
+  justify-content: space-between;
+}
+
+.zoneName { font-size: 13px; color: #555; }
+.zonePct { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+
+.zoneBarBg {
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.zoneBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s;
+}
+
+/* Heatmap */
+.heatmap {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.heatmapYLabels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  font-size: 12px;
+  color: #888;
+  padding-top: 20px;
+}
+
+.heatmapGrid { flex: 1; }
+
+.heatmapXLabels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.heatmapRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.heatCell {
+  height: 28px;
+  border-radius: 4px;
+}
+
+/* No-show */
+.kpiLarge {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 8px 0 4px;
+}
+
+.kpiNote { font-size: 13px; color: #aaa; margin: 0 0 12px; }
+
+.sparkline {
+  width: 100%;
+  max-width: 200px;
+  display: block;
+}
+
+.sparklineLabel { font-size: 11px; color: #aaa; margin: 4px 0 0; }
+
+.trendBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+/* Client Table */
+.clientTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.clientTable thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.clientTable tbody td {
+  padding: 12px;
+  font-size: 13px;
+  color: #444;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.clientTable tbody tr:last-child td { border-bottom: none; }
+
+.statusBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 32px;
+}
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .cardWide, .cardFull { grid-column: 1; }
+}
