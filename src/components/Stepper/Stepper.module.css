@@ -1,0 +1,67 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.stepWrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.stepWrapper:last-child {
+  flex: 0;
+}
+
+.stepCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.stepActive {
+  background: #c2185b;
+  color: #fff;
+}
+
+.stepLabel {
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.stepLabelActive {
+  color: #c2185b;
+  font-weight: 600;
+}
+
+.stepLine {
+  flex: 1;
+  height: 3px;
+  background: #e9ecef;
+  margin: 0 8px;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.stepLineActive {
+  background: #c2185b;
+}

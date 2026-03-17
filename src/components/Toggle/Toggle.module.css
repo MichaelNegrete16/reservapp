@@ -1,0 +1,42 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: #e0e0e0;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.trackActive {
+  background: #e65100;
+}
+
+.thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.trackActive .thumb {
+  transform: translateX(20px);
+}
+
+.label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
