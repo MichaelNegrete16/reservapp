@@ -7,10 +7,10 @@ import { clearSession } from "@/lib/auth";
 import styles from "./AdminLayout.module.css";
 
 const NAV = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/restaurants", label: "Restaurants", icon: UtensilsCrossed },
-  { href: "/admin/plans", label: "Plans", icon: CreditCard },
-  { href: "/admin/logs", label: "Logs", icon: ScrollText },
+  { href: "/admin", label: "Panel general",  icon: LayoutDashboard },
+  { href: "/admin/restaurants", label: "Restaurantes", icon: UtensilsCrossed },
+  { href: "/admin/plans", label: "Planes", icon: CreditCard },
+  { href: "/admin/logs", label: "Registros", icon: ScrollText },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

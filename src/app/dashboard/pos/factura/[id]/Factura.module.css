@@ -1,0 +1,319 @@
+.page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: "Inter", system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra superior */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  text-decoration: none;
+}
+
+.backBtn:hover { color: #e65100; }
+
+.mesaTag {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  background: #fff3e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  padding: 24px;
+  flex: 1;
+  align-items: start;
+}
+
+.panelTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 20px;
+}
+
+/* Resumen */
+.resumenPanel, .pagoPanel {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* Tabla */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+
+.table thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.table tbody td {
+  padding: 12px;
+  font-size: 13px;
+  color: #444;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+.itemEmoji { margin-right: 8px; }
+.tdCenter  { text-align: center; }
+.tdBold    { font-weight: 700; color: #1a1a1a; }
+
+/* Descuento */
+.descuentoSection { margin-top: 4px; }
+
+.fieldLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.descuentoBtns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.descBtn {
+  padding: 8px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.descBtn:hover { border-color: #e65100; color: #e65100; }
+
+.descBtnActive {
+  background: #e65100;
+  color: #fff;
+  border-color: #e65100;
+}
+
+/* Desglose */
+.desglose {
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.desgloseRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #555;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.desgloseRow:last-child { border-bottom: none; }
+
+.desgloseDescuento { color: #388e3c; }
+
+.desgloseTotal {
+  background: #fff8f0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+/* Método de pago */
+.metodoSection { margin-bottom: 20px; }
+
+.metodoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.metodoBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.metodoBtn:hover { border-color: #e65100; }
+
+.metodoBtnActive {
+  border-color: #e65100;
+  color: #e65100;
+  background: #fff8f0;
+}
+
+/* Efectivo */
+.efectivoSection { margin-bottom: 20px; }
+
+.efectivoInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+.efectivoInput:focus { border-color: #e65100; }
+
+.cambioRow {
+  font-size: 14px;
+  color: #388e3c;
+  padding: 8px 12px;
+  background: #e8f5e9;
+  border-radius: 8px;
+}
+
+.faltaRow {
+  font-size: 14px;
+  color: #c62828;
+  padding: 8px 12px;
+  background: #ffebee;
+  border-radius: 8px;
+}
+
+/* Botón pagar */
+.btnPagar {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #e65100, #ff7043);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+
+.btnPagar:hover { opacity: 0.9; }
+.btnPagar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Pantalla éxito ─── */
+.successPage {
+  min-height: 100vh;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.successCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 40px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+.successIcon {
+  color: #388e3c;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.successTitle { font-size: 28px; font-weight: 800; color: #1a1a1a; margin: 0 0 8px; }
+.successSub   { font-size: 14px; color: #888; margin: 0 0 20px; }
+.successTotal { font-size: 36px; font-weight: 800; color: #e65100; margin-bottom: 8px; }
+.successMetodo { font-size: 14px; color: #555; margin: 0; }
+.successCambio { font-size: 16px; font-weight: 700; color: #388e3c; margin: 8px 0 0; }
+
+.successBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.btnImprimir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px;
+  border: 2px solid #e65100;
+  border-radius: 10px;
+  background: #fff;
+  color: #e65100;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btnVolver {
+  display: block;
+  padding: 13px;
+  background: #e65100;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.btnImprimir:hover, .btnVolver:hover { opacity: 0.88; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: 16px; }
+  .metodoGrid { grid-template-columns: 1fr 1fr; }
+}

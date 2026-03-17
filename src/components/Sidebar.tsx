@@ -12,19 +12,21 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  ShoppingCart,
 } from "lucide-react";
 import { clearSession } from "@/lib/auth";
 import styles from "./Sidebar.module.css";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Inicio", icon: Home },
-  { href: "/dashboard/reservas", label: "Reservas", icon: CalendarDays },
-  { href: "/dashboard/mesas", label: "Mesas", icon: LayoutGrid },
-  { href: "/dashboard/zonas", label: "Zonas", icon: MapPin },
-  { href: "/dashboard/horarios", label: "Horarios", icon: Clock },
-  { href: "/dashboard/clientes", label: "Clientes", icon: Users },
-  { href: "/dashboard/reportes", label: "Reportes", icon: BarChart3 },
-  { href: "/dashboard/configuracion", label: "Configuración", icon: Settings },
+  { href: "/dashboard",                  label: "Inicio",        icon: Home },
+  { href: "/dashboard/reservas",         label: "Reservas",      icon: CalendarDays },
+  { href: "/dashboard/mesas",            label: "Mesas",         icon: LayoutGrid },
+  { href: "/dashboard/zonas",            label: "Zonas",         icon: MapPin },
+  { href: "/dashboard/horarios",         label: "Horarios",      icon: Clock },
+  { href: "/dashboard/clientes",         label: "Clientes",      icon: Users },
+  { href: "/dashboard/reportes",         label: "Reportes",      icon: BarChart3 },
+  { href: "/dashboard/configuracion",    label: "Configuración", icon: Settings },
+  { href: "/dashboard/pos",              label: "Punto de Venta",icon: ShoppingCart },
 ];
 
 export default function Sidebar() {

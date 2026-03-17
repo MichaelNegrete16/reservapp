@@ -5,25 +5,25 @@ import { Download } from "lucide-react";
 import styles from "./Admin.module.css";
 
 const KPIS = [
-  { label: "Total Restaurants", value: "1,284", trend: "+12%", icon: "🍴" },
-  { label: "Active This Month", value: "156", trend: "+5%", icon: "⚡" },
-  { label: "Total Bookings", value: "45,902", trend: "+18%", icon: "📅" },
+  { label: "Total restaurantes", value: "1.284", trend: "+12%", icon: "🍴" },
+  { label: "Activos este mes",    value: "156",   trend: "+5%",  icon: "⚡" },
+  { label: "Total reservas",      value: "45.902",trend: "+18%", icon: "📅" },
 ];
 
-const WEEKS = ["WEEK 1", "WEEK 2", "WEEK 3", "WEEK 4", "WEEK 5", "WEEK 6", "WEEK 7"];
+const WEEKS = ["SEM 1", "SEM 2", "SEM 3", "SEM 4", "SEM 5", "SEM 6", "SEM 7"];
 const CHART_DATA = [45, 72, 38, 95, 60, 88, 70];
 
 const LATEST_REGS = [
-  { initial: "L", name: "Le Petit Bistro", time: "2 hours ago", plan: "PRO", planColor: "#e65100" },
-  { initial: "U", name: "Umami House", time: "5 hours ago", plan: "FREE", planColor: "#888" },
-  { initial: "S", name: "Sushi Zen", time: "Yesterday", plan: "PLATINUM", planColor: "#6a1b9a" },
-  { initial: "B", name: "Burger Barn", time: "Yesterday", plan: "PRO", planColor: "#e65100" },
+  { initial: "L", name: "Le Petit Bistro", time: "Hace 2 horas", plan: "PRO",      planColor: "#e65100" },
+  { initial: "U", name: "Umami House",     time: "Hace 5 horas", plan: "FREE",     planColor: "#888" },
+  { initial: "S", name: "Sushi Zen",       time: "Ayer",          plan: "PLATINUM", planColor: "#6a1b9a" },
+  { initial: "B", name: "Burger Barn",     time: "Ayer",          plan: "PRO",      planColor: "#e65100" },
 ];
 
 const RESTAURANTS = [
-  { name: "The Golden Grill", owner: "Marcus Thorne", plan: "PLATINUM YEARLY", planColor: "#6a1b9a", bookings: "1,204", trend: "+15%", status: "Active" },
-  { name: "Brew & Bites", owner: "Sarah Jenkins", plan: "PRO MONTHLY", planColor: "#e65100", bookings: "452", trend: "-2%", status: "Active" },
-  { name: "Rustic Dough", owner: "Luigi Vampa", plan: "FREE TIER", planColor: "#888", bookings: "89", trend: "+20%", status: "Suspended" },
+  { name: "The Golden Grill", owner: "Marcus Thorne", plan: "PLATINUM ANUAL",  planColor: "#6a1b9a", bookings: "1.204", trend: "+15%", status: "Activo" },
+  { name: "Brew & Bites",     owner: "Sarah Jenkins", plan: "PRO MENSUAL",     planColor: "#e65100", bookings: "452",   trend: "-2%",  status: "Activo" },
+  { name: "Rustic Dough",     owner: "Luigi Vampa",   plan: "PLAN GRATUITO",   planColor: "#888",    bookings: "89",    trend: "+20%", status: "Suspendido" },
 ];
 
 export default function AdminDashboard() {
@@ -43,12 +43,12 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Platform Overview</h1>
-          <p className={styles.subtitle}>Real-time performance metrics and management</p>
+          <h1 className={styles.title}>Panel General</h1>
+          <p className={styles.subtitle}>Métricas de rendimiento en tiempo real</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnDate}>📅 Last 30 Days</button>
-          <button className={styles.btnExport}><Download size={16} /> Export Report</button>
+          <button className={styles.btnDate}>📅 Últimos 30 días</button>
+          <button className={styles.btnExport}><Download size={16} /> Exportar informe</button>
         </div>
       </div>
 
@@ -72,8 +72,8 @@ export default function AdminDashboard() {
       <div className={styles.midRow}>
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
-            <h3 className={styles.cardTitle}>Weekly Registrations</h3>
-            <span className={styles.newBadge}>84 NEW THIS WEEK</span>
+            <h3 className={styles.cardTitle}>Registros semanales</h3>
+            <span className={styles.newBadge}>84 NUEVOS ESTA SEMANA</span>
           </div>
           <div className={styles.lineChart}>
             <svg viewBox="0 0 700 120" className={styles.lineSvg} preserveAspectRatio="none">
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className={styles.latestCard}>
-          <h3 className={styles.cardTitle}>Latest Registrations</h3>
+          <h3 className={styles.cardTitle}>Últimos registros</h3>
           <div className={styles.latestList}>
             {LATEST_REGS.map((r) => (
               <div key={r.name} className={styles.latestItem}>
@@ -119,20 +119,20 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
-          <button className={styles.viewAllBtn}>View All Activity</button>
+          <button className={styles.viewAllBtn}>Ver toda la actividad</button>
         </div>
       </div>
 
       {/* Restaurant Directory */}
       <div className={styles.directoryCard}>
         <div className={styles.directoryHeader}>
-          <h3 className={styles.cardTitle}>Restaurant Directory</h3>
+          <h3 className={styles.cardTitle}>Directorio de restaurantes</h3>
           <div className={styles.directoryActions}>
             <div className={styles.searchWrapper}>
               <span>🔍</span>
               <input
                 className={styles.searchInput}
-                placeholder="Search owner or restaurant..."
+                placeholder="Buscar propietario o restaurante..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -144,11 +144,11 @@ export default function AdminDashboard() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Restaurant & Owner</th>
-              <th>Current Plan</th>
-              <th>Bookings</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Restaurante y propietario</th>
+              <th>Plan actual</th>
+              <th>Reservas</th>
+              <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
                     <div className={styles.restaurantImg} />
                     <div>
                       <div className={styles.restaurantName}>{r.name}</div>
-                      <div className={styles.restaurantOwner}>Owner: {r.owner}</div>
+                      <div className={styles.restaurantOwner}>Propietario: {r.owner}</div>
                     </div>
                   </div>
                 </td>
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
                       className={styles.bookingsTrend}
                       style={{ color: r.trend.startsWith("+") ? "#388e3c" : "#d32f2f" }}
                     >
-                      {r.trend} this month
+                      {r.trend} este mes
                     </span>
                   </div>
                 </td>
@@ -186,10 +186,10 @@ export default function AdminDashboard() {
                   <div className={styles.statusCell}>
                     <span
                       className={styles.statusDot}
-                      style={{ background: r.status === "Active" ? "#388e3c" : "#d32f2f" }}
+                      style={{ background: r.status === "Activo" ? "#388e3c" : "#d32f2f" }}
                     />
                     <span
-                      style={{ color: r.status === "Active" ? "#388e3c" : "#d32f2f", fontWeight: 600, fontSize: 13 }}
+                      style={{ color: r.status === "Activo" ? "#388e3c" : "#d32f2f", fontWeight: 600, fontSize: 13 }}
                     >
                       {r.status}
                     </span>
@@ -208,11 +208,11 @@ export default function AdminDashboard() {
 
         <div className={styles.tablePagination}>
           <span className={styles.paginationInfo}>
-            Showing 1-10 of 1,284 restaurants
+            Mostrando 1-10 de 1.284 restaurantes
           </span>
           <div className={styles.paginationBtns}>
-            <button className={styles.pgBtn} onClick={() => setPage(Math.max(1, page - 1))}>Previous</button>
-            <button className={`${styles.pgBtn} ${styles.pgBtnActive}`} onClick={() => setPage(page + 1)}>Next</button>
+            <button className={styles.pgBtn} onClick={() => setPage(Math.max(1, page - 1))}>Anterior</button>
+            <button className={`${styles.pgBtn} ${styles.pgBtnActive}`} onClick={() => setPage(page + 1)}>Siguiente</button>
           </div>
         </div>
       </div>

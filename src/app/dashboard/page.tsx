@@ -5,10 +5,10 @@ import { Download, Plus } from "lucide-react";
 import styles from "./Dashboard.module.css";
 
 const KPIS = [
-  { label: "Total Today", value: "42", trend: "+12%", color: "#e65100" },
-  { label: "Expected People", value: "128", trend: "+5%", color: "#1565c0" },
-  { label: "Confirmed", value: "35", trend: "-2%", color: "#e65100" },
-  { label: "Pending", value: "7", trend: "+1%", color: "#6a1b9a" },
+  { label: "Reservas hoy",      value: "42",  trend: "+12%", color: "#e65100" },
+  { label: "Personas esperadas",value: "128", trend: "+5%",  color: "#1565c0" },
+  { label: "Confirmadas",       value: "35",  trend: "-2%",  color: "#e65100" },
+  { label: "Pendientes",        value: "7",   trend: "+1%",  color: "#6a1b9a" },
 ];
 
 const HOURS_DATA = [
@@ -21,17 +21,17 @@ const HOURS_DATA = [
 ];
 
 const UPCOMING = [
-  { time: "19:30", name: "Julian Casablancas", people: 4, table: "Table 12", status: "ARRIVED", statusColor: "#388e3c" },
-  { time: "19:45", name: "Sarah Jenkins", people: 2, table: "Table 4", status: "CONFIRMED", statusColor: "#1565c0" },
-  { time: "20:00", name: "David Bowie", people: 6, table: "Table 22", status: "CONFIRMED", statusColor: "#1565c0" },
-  { time: "20:15", name: "Mia Wallace", people: 2, table: "Bar", status: "PENDING", statusColor: "#e65100" },
-  { time: "20:30", name: "Frank Ocean", people: 5, table: "Table 8", status: "CONFIRMED", statusColor: "#1565c0" },
+  { time: "19:30", name: "Julian Casablancas", people: 4, table: "Mesa 12", status: "LLEGÓ",      statusColor: "#388e3c" },
+  { time: "19:45", name: "Sarah Jenkins",      people: 2, table: "Mesa 4",  status: "CONFIRMADO", statusColor: "#1565c0" },
+  { time: "20:00", name: "David Bowie",        people: 6, table: "Mesa 22", status: "CONFIRMADO", statusColor: "#1565c0" },
+  { time: "20:15", name: "Mia Wallace",        people: 2, table: "Barra",   status: "PENDIENTE",  statusColor: "#e65100" },
+  { time: "20:30", name: "Frank Ocean",        people: 5, table: "Mesa 8",  status: "CONFIRMADO", statusColor: "#1565c0" },
 ];
 
 const ZONES = [
-  { name: "Main Dining Room", pct: 92 },
-  { name: "Terrace Garden", pct: 65 },
-  { name: "Lounge Bar", pct: 78 },
+  { name: "Salón principal", pct: 92 },
+  { name: "Terraza jardín",  pct: 65 },
+  { name: "Barra lounge",    pct: 78 },
 ];
 
 export default function DashboardHome() {
@@ -42,18 +42,18 @@ export default function DashboardHome() {
       {/* Top Bar */}
       <div className={styles.topBar}>
         <div>
-          <h1 className={styles.greeting}>Good evening, Marco</h1>
+          <h1 className={styles.greeting}>Buenas noches, Marco</h1>
           <p className={styles.subGreeting}>
-            Here&apos;s what&apos;s happening today at{" "}
+            Esto es lo que está pasando hoy en{" "}
             <span className={styles.restaurantName}>La Trattoria</span>
           </p>
         </div>
         <div className={styles.topActions}>
           <button className={styles.btnOutline}>
-            <Download size={16} /> Export
+            <Download size={16} /> Exportar
           </button>
           <Link href="/dashboard/reservas/nueva" className={styles.btnPrimary}>
-            <Plus size={16} /> New Reservation
+            <Plus size={16} /> Nueva reserva
           </Link>
         </div>
       </div>
@@ -83,13 +83,13 @@ export default function DashboardHome() {
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <div>
-              <h3 className={styles.chartTitle}>Reservations per Hour</h3>
+              <h3 className={styles.chartTitle}>Reservas por hora</h3>
               <p className={styles.chartSubtitle}>
-                Real-time booking distribution
+                Distribución de reservas en tiempo real
               </p>
             </div>
             <select className={styles.chartSelect}>
-              <option>Today</option>
+              <option>Hoy</option>
             </select>
           </div>
           <div className={styles.barChart}>
@@ -113,7 +113,7 @@ export default function DashboardHome() {
 
         {/* Upcoming */}
         <div className={styles.upcomingCard}>
-          <h3 className={styles.chartTitle}>Upcoming Next</h3>
+          <h3 className={styles.chartTitle}>Próximas reservas</h3>
           <div className={styles.upcomingList}>
             {UPCOMING.map((r) => (
               <div key={r.time + r.name} className={styles.upcomingItem}>
@@ -121,7 +121,7 @@ export default function DashboardHome() {
                 <div className={styles.upcomingInfo}>
                   <span className={styles.upcomingName}>{r.name}</span>
                   <span className={styles.upcomingMeta}>
-                    {r.people} people · {r.table}
+                    {r.people} personas · {r.table}
                   </span>
                 </div>
                 <span
@@ -140,7 +140,7 @@ export default function DashboardHome() {
             href="/dashboard/reservas"
             className={styles.viewAllBtn}
           >
-            View All Reservations
+            Ver todas las reservas
           </Link>
         </div>
       </div>
@@ -149,14 +149,14 @@ export default function DashboardHome() {
       <div className={styles.occupancyCard}>
         <div className={styles.occupancyHeader}>
           <div>
-            <h3 className={styles.chartTitle}>Current Venue Occupancy</h3>
+            <h3 className={styles.chartTitle}>Ocupación actual del local</h3>
             <p className={styles.chartSubtitle}>
-              Live capacity status across all zones
+              Estado de capacidad en tiempo real por zona
             </p>
           </div>
           <div className={styles.occupancyTotal}>
             <span className={styles.occupancyPct}>84%</span>
-            <span className={styles.occupancySeats}>84 / 100 Seats Filled</span>
+            <span className={styles.occupancySeats}>84 / 100 asientos ocupados</span>
           </div>
         </div>
         <div className={styles.occupancyBarBg}>
