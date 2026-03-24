@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Pencil, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Pencil, X, Trash2 } from "lucide-react";
 import Toggle from "@/components/Toggle";
+import Modal from "@/components/Modal";
+import { api } from "@/lib/api-client";
 import styles from "./Horarios.module.css";
 
 interface Turno {
@@ -15,48 +17,173 @@ interface Turno {
   active: boolean;
 }
 
+interface Holiday {
+  id: string;
+  date: string;
+  name: string;
+}
+
+interface WeeklyAvailability {
+  monday: boolean;
+  tuesday: boolean;
+  wednesday: boolean;
+  thursday: boolean;
+  friday: boolean;
+  saturday: boolean;
+  sunday: boolean;
+}
+
 const DAYS = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
-const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-const INITIAL_TURNOS: Turno[] = [
-  { id: "t1", name: "Turno almuerzo", startTime: "12:00", endTime: "16:00", interval: 30, maxReservations: 20, active: true },
-  { id: "t2", name: "Turno cena", startTime: "18:00", endTime: "23:00", interval: 15, maxReservations: 15, active: true },
-];
-
-const HOLIDAYS_INIT = [
-  { id: "h1", label: "Dic 25 · Navidad" },
-  { id: "h2", label: "Ene 1 · Año nuevo" },
-  { id: "h3", label: "Dic 31 · Nochevieja" },
+const DAY_KEYS: (keyof WeeklyAvailability)[] = [
+  "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
 ];
 
 export default function HorariosPage() {
-  const [turnos, setTurnos] = useState<Turno[]>(INITIAL_TURNOS);
-  const [openDays, setOpenDays] = useState<boolean[]>([true, true, true, true, true, true, false]);
-  const [holidays, setHolidays] = useState(HOLIDAYS_INIT);
-  const [selectedCalDay, setSelectedCalDay] = useState<number | null>(24);
-  const [hasChanges, setHasChanges] = useState(true);
+  const [turnos, setTurnos] = useState<Turno[]>([]);
+  const [weekly, setWeekly] = useState<WeeklyAvailability>({
+    monday: true, tuesday: true, wednesday: true, thursday: true,
+    friday: true, saturday: true, sunday: false,
+  });
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [selectedCalDay, setSelectedCalDay] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Shift modal state
+  const [showShiftModal, setShowShiftModal] = useState(false);
+  const [editShift, setEditShift] = useState<Turno | null>(null);
+  const [shiftName, setShiftName] = useState("");
+  const [shiftStart, setShiftStart] = useState("12:00");
+  const [shiftEnd, setShiftEnd] = useState("16:00");
+  const [shiftInterval, setShiftInterval] = useState(30);
+  const [shiftMax, setShiftMax] = useState(20);
+
+  // Holiday name input
+  const [holidayName, setHolidayName] = useState("");
 
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
 
-  const toggleDay = (i: number) => {
-    const next = [...openDays];
-    next[i] = !next[i];
-    setOpenDays(next);
-    setHasChanges(true);
-  };
+  const fetchSchedules = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get<{ ok: boolean; data: { shifts: Turno[]; weekly: WeeklyAvailability; holidays: Holiday[] } }>("/schedules");
+      setTurnos(res.data.shifts);
+      setWeekly(res.data.weekly);
+      setHolidays(res.data.holidays);
+    } catch {
+      /* handled globally */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const removeHoliday = (id: string) => {
-    setHolidays((prev) => prev.filter((h) => h.id !== id));
-  };
+  useEffect(() => {
+    fetchSchedules();
+  }, [fetchSchedules]);
 
-  const addHoliday = () => {
-    if (selectedCalDay) {
-      const label = `${today.toLocaleDateString("es-CO", { month: "short" })} ${selectedCalDay} · Fecha personalizada`;
-      setHolidays((prev) => [...prev, { id: `h${Date.now()}`, label }]);
+  const openDays = DAY_KEYS.map((key) => weekly[key]);
+
+  const toggleDay = async (i: number) => {
+    const key = DAY_KEYS[i];
+    const newWeekly = { ...weekly, [key]: !weekly[key] };
+    setWeekly(newWeekly);
+    try {
+      await api.patch("/schedules/weekly", newWeekly);
+    } catch {
+      setWeekly(weekly); // revert on error
     }
   };
+
+  const removeHoliday = async (id: string) => {
+    try {
+      await api.del(`/schedules/holidays/${id}`);
+      setHolidays((prev) => prev.filter((h) => h.id !== id));
+    } catch {
+      /* handled globally */
+    }
+  };
+
+  const addHoliday = async () => {
+    if (!selectedCalDay) return;
+    const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(selectedCalDay).padStart(2, "0")}`;
+    const name = holidayName.trim() || "Fecha personalizada";
+    try {
+      const res = await api.post<{ ok: boolean; data: Holiday }>("/schedules/holidays", { date, name });
+      setHolidays((prev) => [...prev, res.data]);
+      setHolidayName("");
+      setSelectedCalDay(null);
+    } catch {
+      /* handled globally */
+    }
+  };
+
+  const formatHolidayLabel = (h: Holiday) => {
+    const d = new Date(h.date + "T12:00:00");
+    const month = d.toLocaleDateString("es-CO", { month: "short" });
+    const day = d.getDate();
+    return `${month} ${day} · ${h.name}`;
+  };
+
+  // Shift CRUD
+  const openAddShift = () => {
+    setEditShift(null);
+    setShiftName(""); setShiftStart("12:00"); setShiftEnd("16:00");
+    setShiftInterval(30); setShiftMax(20);
+    setShowShiftModal(true);
+  };
+
+  const openEditShift = (shift: Turno) => {
+    setEditShift(shift);
+    setShiftName(shift.name); setShiftStart(shift.startTime); setShiftEnd(shift.endTime);
+    setShiftInterval(shift.interval); setShiftMax(shift.maxReservations);
+    setShowShiftModal(true);
+  };
+
+  const handleSaveShift = async () => {
+    if (!shiftName.trim()) return;
+    setSaving(true);
+    try {
+      if (editShift) {
+        const res = await api.patch<{ ok: boolean; data: Turno }>(`/schedules/shifts/${editShift.id}`, {
+          name: shiftName, startTime: shiftStart, endTime: shiftEnd,
+          interval: shiftInterval, maxReservations: shiftMax,
+        });
+        setTurnos((prev) => prev.map((t) => t.id === editShift.id ? res.data : t));
+      } else {
+        const res = await api.post<{ ok: boolean; data: Turno }>("/schedules/shifts", {
+          name: shiftName, startTime: shiftStart, endTime: shiftEnd,
+          interval: shiftInterval, maxReservations: shiftMax,
+        });
+        setTurnos((prev) => [...prev, res.data]);
+      }
+      setShowShiftModal(false);
+    } catch {
+      /* handled globally */
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteShift = async (id: string) => {
+    try {
+      await api.del(`/schedules/shifts/${id}`);
+      setTurnos((prev) => prev.filter((t) => t.id !== id));
+    } catch {
+      /* handled globally */
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>
+          Cargando horarios...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -77,7 +204,10 @@ export default function HorariosPage() {
             <div key={t.id} className={styles.turnoCard}>
               <div className={styles.turnoHeader}>
                 <span className={styles.activeChip}>Activo</span>
-                <button className={styles.editBtn}><Pencil size={14} /></button>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <button className={styles.editBtn} onClick={() => openEditShift(t)}><Pencil size={14} /></button>
+                  <button className={styles.editBtn} onClick={() => handleDeleteShift(t.id)}><Trash2 size={14} /></button>
+                </div>
               </div>
               <h3 className={styles.turnoName}>{t.name}</h3>
               <div className={styles.turnoRow}>
@@ -95,7 +225,7 @@ export default function HorariosPage() {
               <div className={styles.turnoStripes} />
             </div>
           ))}
-          <button className={styles.addTurnoBtn} onClick={() => setHasChanges(true)}>
+          <button className={styles.addTurnoBtn} onClick={openAddShift}>
             <Plus size={18} /> Agregar turno
           </button>
         </div>
@@ -156,6 +286,16 @@ export default function HorariosPage() {
                 })}
               </div>
             </div>
+            {selectedCalDay && (
+              <div style={{ marginTop: 8 }}>
+                <input
+                  style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #333", background: "#1a1a2e", color: "#fff", fontSize: 13 }}
+                  placeholder="Nombre del festivo (opcional)"
+                  value={holidayName}
+                  onChange={(e) => setHolidayName(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div className={styles.closuresPanel}>
@@ -163,13 +303,13 @@ export default function HorariosPage() {
             <div className={styles.holidayChips}>
               {holidays.map((h) => (
                 <span key={h.id} className={styles.holidayChip}>
-                  {h.label}
+                  {formatHolidayLabel(h)}
                   <button className={styles.holidayRemove} onClick={() => removeHoliday(h.id)}>
                     <X size={12} />
                   </button>
                 </span>
               ))}
-              <button className={styles.addCustomBtn} onClick={addHoliday}>
+              <button className={styles.addCustomBtn} onClick={addHoliday} disabled={!selectedCalDay}>
                 <Plus size={14} /> Agregar fecha
               </button>
             </div>
@@ -181,18 +321,66 @@ export default function HorariosPage() {
         </div>
       </section>
 
-      {/* Bottom Bar */}
-      {hasChanges && (
-        <div className={styles.bottomBar}>
-          <div className={styles.changesNote}>
-            <span className={styles.changesLabel}>ESTADO</span>
-            <span className={styles.changesText}>Cambios sin guardar en bloques de reserva</span>
+      {/* Shift Modal */}
+      {showShiftModal && (
+        <Modal
+          title={editShift ? "Editar turno" : "Agregar turno"}
+          onClose={() => setShowShiftModal(false)}
+          footer={
+            <>
+              <button className={styles.btnDiscard} onClick={() => setShowShiftModal(false)}>Cancelar</button>
+              <button className={styles.btnSave} onClick={handleSaveShift} disabled={saving}>
+                {saving ? "Guardando..." : editShift ? "Guardar cambios" : "Agregar turno"}
+              </button>
+            </>
+          }
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 13, color: "#aaa", marginBottom: 4 }}>Nombre del turno</label>
+              <input
+                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #333", background: "#1a1a2e", color: "#fff" }}
+                value={shiftName} onChange={(e) => setShiftName(e.target.value)} placeholder="ej. Turno almuerzo"
+              />
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", fontSize: 13, color: "#aaa", marginBottom: 4 }}>Hora inicio</label>
+                <input
+                  type="time"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #333", background: "#1a1a2e", color: "#fff" }}
+                  value={shiftStart} onChange={(e) => setShiftStart(e.target.value)}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", fontSize: 13, color: "#aaa", marginBottom: 4 }}>Hora fin</label>
+                <input
+                  type="time"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #333", background: "#1a1a2e", color: "#fff" }}
+                  value={shiftEnd} onChange={(e) => setShiftEnd(e.target.value)}
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", fontSize: 13, color: "#aaa", marginBottom: 4 }}>Intervalo (min)</label>
+                <input
+                  type="number"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #333", background: "#1a1a2e", color: "#fff" }}
+                  value={shiftInterval} onChange={(e) => setShiftInterval(Number(e.target.value))} min={5}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", fontSize: 13, color: "#aaa", marginBottom: 4 }}>Máx. reservas</label>
+                <input
+                  type="number"
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #333", background: "#1a1a2e", color: "#fff" }}
+                  value={shiftMax} onChange={(e) => setShiftMax(Number(e.target.value))} min={1}
+                />
+              </div>
+            </div>
           </div>
-          <div className={styles.bottomActions}>
-            <button className={styles.btnDiscard} onClick={() => setHasChanges(false)}>Descartar</button>
-            <button className={styles.btnSave} onClick={() => setHasChanges(false)}>Guardar cambios</button>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

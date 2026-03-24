@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Upload, Settings, X } from "lucide-react";
+import { ArrowRight, Upload, Settings, X, AlertCircle } from "lucide-react";
+import { register } from "@/lib/auth";
 import styles from "./Registro.module.css";
 
 const STEPS = [
@@ -28,6 +29,7 @@ export default function RegistroPage() {
   const [turnoAlmuerzo, setTurnoAlmuerzo] = useState(true);
   const [turnoCena, setTurnoCena] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const toggleZona = (zona: string) => {
     setZonas((prev) =>
@@ -55,10 +57,34 @@ export default function RegistroPage() {
     return Object.keys(next).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!validateStep()) return;
-    if (step < 3) setStep(step + 1);
-    else window.location.href = "/dashboard";
+
+    if (step < 3) {
+      setStep(step + 1);
+      return;
+    }
+
+    // Final step: call register API
+    setLoading(true);
+    setErrors({});
+
+    try {
+      await register({
+        name: nombre,
+        email,
+        password,
+        restaurantName,
+        restaurantAddress: address || undefined,
+      });
+      window.location.href = "/dashboard";
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error al registrar. Inténtalo de nuevo.";
+      setErrors({ general: message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -91,6 +117,13 @@ export default function RegistroPage() {
           </div>
         ))}
       </div>
+
+      {errors.general && (
+        <div style={{ maxWidth: 480, margin: "0 auto 16px", padding: "12px 16px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, color: "#dc2626", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+          <AlertCircle size={16} />
+          {errors.general}
+        </div>
+      )}
 
       {/* Paso 1: Cuenta */}
       {step === 1 && (
@@ -244,8 +277,8 @@ export default function RegistroPage() {
 
           <div className={styles.cardActions}>
             <button className={styles.btnBack} onClick={() => setStep(step - 1)}>Atrás</button>
-            <button className={styles.btnNext} onClick={handleNext}>
-              Finalizar registro <ArrowRight size={16} />
+            <button className={styles.btnNext} onClick={handleNext} disabled={loading}>
+              {loading ? "Registrando..." : "Finalizar registro"} {!loading && <ArrowRight size={16} />}
             </button>
           </div>
         </div>

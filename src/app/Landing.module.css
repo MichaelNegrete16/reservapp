@@ -325,7 +325,7 @@
 
 .pricingGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
@@ -375,7 +375,7 @@
 }
 
 .priceAmount {
-  font-size: 42px;
+  font-size: 36px;
   font-weight: 800;
   color: #1a1a1a;
 }
@@ -414,6 +414,52 @@
 .checkPink {
   color: #c2185b;
   flex-shrink: 0;
+}
+
+.checkPurple {
+  color: #6a1b9a;
+  flex-shrink: 0;
+}
+
+.pricingCardPlatinum {
+  border-color: #6a1b9a;
+  border-width: 2px;
+  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 40%);
+}
+
+.planBadgePlatinum {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  background: #6a1b9a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.priceAmountPlatinum {
+  color: #6a1b9a;
+}
+
+.btnPlatinum {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  background: #6a1b9a;
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btnPlatinum:hover {
+  background: #4a148c;
 }
 
 .btnOutline {

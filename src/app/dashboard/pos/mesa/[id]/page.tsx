@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
+import { api } from "@/lib/api-client";
 import styles from "./Orden.module.css";
 
-/* ─── Tipos ─── */
+/* --- Tipos --- */
 interface Articulo {
   id: string;
   nombre: string;
@@ -17,72 +18,138 @@ interface Articulo {
 }
 
 interface ItemPedido {
+  id?: string;        // backend item id (for existing items)
   articulo: Articulo;
   cantidad: number;
   notas: string;
 }
 
-/* ─── Datos mock ─── */
-const CATEGORIAS = ["Entradas", "Platos principales", "Bebidas", "Postres", "Especiales"];
-
-const ARTICULOS: Articulo[] = [
-  // Entradas
-  { id: "e1", nombre: "Tabla de quesos",      descripcion: "Selección de quesos artesanales con mermeladas",    precio: 28000, categoria: "Entradas",         emoji: "🧀" },
-  { id: "e2", nombre: "Ceviche de camarón",   descripcion: "Camarón tigre, limón, cilantro y ají",             precio: 32000, categoria: "Entradas",         emoji: "🍤" },
-  { id: "e3", nombre: "Bruschetta",            descripcion: "Pan tostado, tomate, albahaca y mozzarella",       precio: 18000, categoria: "Entradas",         emoji: "🍞" },
-  { id: "e4", nombre: "Sopa del día",          descripcion: "Consultar disponibilidad con el mesero",           precio: 15000, categoria: "Entradas",         emoji: "🥣" },
-  // Platos principales
-  { id: "p1", nombre: "Filete de res",         descripcion: "Término a elección, papas y ensalada",             precio: 68000, categoria: "Platos principales",emoji: "🥩" },
-  { id: "p2", nombre: "Pasta carbonara",       descripcion: "Espagueti, panceta, huevo y parmesano",            precio: 42000, categoria: "Platos principales",emoji: "🍝" },
-  { id: "p3", nombre: "Pollo a la plancha",    descripcion: "Pechuga, verduras salteadas y arroz integral",     precio: 38000, categoria: "Platos principales",emoji: "🍗" },
-  { id: "p4", nombre: "Salmón al limón",       descripcion: "Salmón fresco, salsa de alcaparras y puré",        precio: 58000, categoria: "Platos principales",emoji: "🐟" },
-  { id: "p5", nombre: "Risotto de hongos",     descripcion: "Arroz arbóreo, hongos silvestres y trufa",         precio: 48000, categoria: "Platos principales",emoji: "🍄" },
-  // Bebidas
-  { id: "b1", nombre: "Limonada de coco",      descripcion: "Limonada natural con coco fresco",                 precio: 12000, categoria: "Bebidas",          emoji: "🥤" },
-  { id: "b2", nombre: "Jugo natural",           descripcion: "Naranja, mango, mora o maracuyá",                 precio: 10000, categoria: "Bebidas",          emoji: "🧃" },
-  { id: "b3", nombre: "Agua mineral",           descripcion: "Con o sin gas 600ml",                             precio: 6000,  categoria: "Bebidas",          emoji: "💧" },
-  { id: "b4", nombre: "Cerveza artesanal",      descripcion: "Rubia, roja o negra 330ml",                       precio: 16000, categoria: "Bebidas",          emoji: "🍺" },
-  { id: "b5", nombre: "Vino copa",              descripcion: "Tinto o blanco, selección del sommelier",         precio: 22000, categoria: "Bebidas",          emoji: "🍷" },
-  { id: "b6", nombre: "Café espresso",          descripcion: "Grano origen Colombia, doble extracción",         precio: 8000,  categoria: "Bebidas",          emoji: "☕" },
-  // Postres
-  { id: "d1", nombre: "Tiramisú",               descripcion: "Clásico italiano con café y mascarpone",          precio: 18000, categoria: "Postres",          emoji: "🍰" },
-  { id: "d2", nombre: "Brownie caliente",       descripcion: "Con helado de vainilla y salsa de caramelo",      precio: 16000, categoria: "Postres",          emoji: "🍫" },
-  { id: "d3", nombre: "Cheesecake de frutos",   descripcion: "Base de galleta, crema y coulis de frutos rojos", precio: 20000, categoria: "Postres",          emoji: "🍓" },
-  // Especiales
-  { id: "s1", nombre: "Bandeja paisa",          descripcion: "Plato típico completo: carne, frijoles y más",   precio: 45000, categoria: "Especiales",       emoji: "🍲" },
-  { id: "s2", nombre: "Menú ejecutivo",         descripcion: "Entrada + plato + bebida + postre",              precio: 52000, categoria: "Especiales",       emoji: "⭐" },
-];
-
-const MESAS_INFO: Record<string, { numero: number; zona: string; personas: number }> = {
-  "1":  { numero: 1,  zona: "Salón",   personas: 3 },
-  "2":  { numero: 2,  zona: "Salón",   personas: 0 },
-  "3":  { numero: 3,  zona: "Salón",   personas: 4 },
-  "4":  { numero: 4,  zona: "Salón",   personas: 5 },
-  "5":  { numero: 5,  zona: "Salón",   personas: 0 },
-  "6":  { numero: 6,  zona: "Salón",   personas: 0 },
-  "7":  { numero: 7,  zona: "Terraza", personas: 2 },
-  "8":  { numero: 8,  zona: "Terraza", personas: 0 },
-  "9":  { numero: 9,  zona: "Terraza", personas: 4 },
-  "10": { numero: 10, zona: "Terraza", personas: 0 },
-  "11": { numero: 11, zona: "Barra",   personas: 1 },
-  "12": { numero: 12, zona: "Barra",   personas: 3 },
-};
+interface MesaInfo {
+  numero: number;
+  zona: string;
+  personas: number;
+}
 
 const formatCOP = (v: number) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 
 export default function TomarOrdenPage() {
   const params = useParams();
+  const router = useRouter();
   const mesaId = params?.id as string ?? "1";
-  const mesaInfo = MESAS_INFO[mesaId] ?? { numero: Number(mesaId), zona: "Salón", personas: 0 };
 
-  const [categoriaActiva, setCategoriaActiva] = useState("Entradas");
+  const [mesaInfo, setMesaInfo] = useState<MesaInfo>({ numero: 0, zona: "Salón", personas: 0 });
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [articulos, setArticulos] = useState<Articulo[]>([]);
+  const [categoriaActiva, setCategoriaActiva] = useState("");
   const [pedido, setPedido] = useState<ItemPedido[]>([]);
   const [notaAbierta, setNotaAbierta] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
-  const articulosFiltrados = ARTICULOS.filter((a) => a.categoria === categoriaActiva);
+  // Prompt for waiter/people when opening a free table
+  const [showOpenModal, setShowOpenModal] = useState(false);
+  const [openForm, setOpenForm] = useState({ waiter: "", people: 2 });
 
-  const agregarAlPedido = (articulo: Articulo) => {
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch menu
+      const menuRes = await api.get<{ ok: boolean; data: Record<string, unknown>[] }>("/menu");
+      const items: Articulo[] = (menuRes.data ?? [])
+        .filter((item) => (item.available as boolean) !== false)
+        .map((item) => ({
+          id: item.id as string,
+          nombre: (item.name as string) ?? (item.nombre as string) ?? "",
+          descripcion: (item.description as string) ?? (item.descripcion as string) ?? "",
+          precio: (item.price as number) ?? (item.precio as number) ?? 0,
+          categoria: (item.category as string) ?? (item.categoria as string) ?? "Otros",
+          emoji: (item.emoji as string) ?? "🍽️",
+        }));
+      setArticulos(items);
+
+      const cats = [...new Set(items.map((i) => i.categoria))];
+      setCategorias(cats);
+      if (cats.length > 0) setCategoriaActiva(cats[0]);
+
+      // Fetch table info to get active order
+      const tablesRes = await api.get<{ ok: boolean; data: Record<string, unknown>[] }>("/pos/tables");
+      const table = (tablesRes.data ?? []).find((t) => (t.id as string) === mesaId);
+
+      if (table) {
+        setMesaInfo({
+          numero: (table.number as number) ?? (table.numero as number) ?? 0,
+          zona: (table.zone as string) ?? (table.zona as string) ?? "Salón",
+          personas: (table.people as number) ?? (table.personas as number) ?? 0,
+        });
+
+        const activeOrderId = (table.orderId as string) ?? (table.activeOrderId as string) ?? null;
+        const status = (table.status as string) ?? "libre";
+
+        if (activeOrderId && status !== "libre") {
+          setOrderId(activeOrderId);
+          // Fetch current order items
+          try {
+            const orderRes = await api.get<{ ok: boolean; data: Record<string, unknown> }>(`/pos/orders/${activeOrderId}`);
+            const orderItems = (orderRes.data?.items as Record<string, unknown>[]) ?? [];
+            const mapped: ItemPedido[] = orderItems.map((oi) => {
+              const menuItem = items.find((a) => a.id === ((oi.menuItemId as string) ?? (oi.menuItem as Record<string, unknown>)?.id));
+              return {
+                id: oi.id as string,
+                articulo: menuItem ?? {
+                  id: (oi.menuItemId as string) ?? "",
+                  nombre: (oi.name as string) ?? "",
+                  descripcion: "",
+                  precio: (oi.price as number) ?? (oi.unitPrice as number) ?? 0,
+                  categoria: "",
+                  emoji: "🍽️",
+                },
+                cantidad: (oi.quantity as number) ?? 1,
+                notas: (oi.notes as string) ?? "",
+              };
+            });
+            setPedido(mapped);
+          } catch {
+            // Order might not have items yet
+          }
+        } else if (status === "libre") {
+          // Table is free, show open modal
+          setShowOpenModal(true);
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error cargando datos");
+    } finally {
+      setLoading(false);
+    }
+  }, [mesaId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleOpenTable = async () => {
+    if (!openForm.waiter.trim()) return;
+    try {
+      const res = await api.post<{ ok: boolean; data: Record<string, unknown> }>(
+        `/pos/tables/${mesaId}/open`,
+        { waiter: openForm.waiter, people: openForm.people }
+      );
+      const newOrderId = (res.data?.orderId as string) ?? (res.data?.id as string) ?? null;
+      if (newOrderId) setOrderId(newOrderId);
+      setMesaInfo((prev) => ({ ...prev, personas: openForm.people }));
+      setShowOpenModal(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error abriendo mesa");
+    }
+  };
+
+  const agregarAlPedido = async (articulo: Articulo) => {
+    // Add locally first for responsiveness
     setPedido((prev) => {
       const existe = prev.find((i) => i.articulo.id === articulo.id);
       if (existe) {
@@ -92,14 +159,57 @@ export default function TomarOrdenPage() {
       }
       return [...prev, { articulo, cantidad: 1, notas: "" }];
     });
+
+    // If we have an active order, sync with backend
+    if (orderId) {
+      try {
+        const res = await api.post<{ ok: boolean; data: Record<string, unknown> }>(
+          `/pos/orders/${orderId}/items`,
+          { menuItemId: articulo.id, quantity: 1, notes: "" }
+        );
+        // Update the item id from backend
+        const itemId = res.data?.id as string;
+        if (itemId) {
+          setPedido((prev) =>
+            prev.map((i) =>
+              i.articulo.id === articulo.id && !i.id ? { ...i, id: itemId } : i
+            )
+          );
+        }
+      } catch {
+        /* handled globally */
+      }
+    }
   };
 
-  const cambiarCantidad = (id: string, delta: number) => {
-    setPedido((prev) =>
-      prev
-        .map((i) => i.articulo.id === id ? { ...i, cantidad: i.cantidad + delta } : i)
-        .filter((i) => i.cantidad > 0)
-    );
+  const cambiarCantidad = async (articuloId: string, delta: number) => {
+    const item = pedido.find((i) => i.articulo.id === articuloId);
+    if (!item) return;
+
+    const newQty = item.cantidad + delta;
+
+    if (newQty <= 0) {
+      // Remove item
+      setPedido((prev) => prev.filter((i) => i.articulo.id !== articuloId));
+      if (orderId && item.id) {
+        try {
+          await api.del(`/pos/orders/${orderId}/items/${item.id}`);
+        } catch {
+          /* handled globally */
+        }
+      }
+    } else {
+      setPedido((prev) =>
+        prev.map((i) => i.articulo.id === articuloId ? { ...i, cantidad: newQty } : i)
+      );
+      if (orderId && item.id) {
+        try {
+          await api.patch(`/pos/orders/${orderId}/items/${item.id}`, { quantity: newQty });
+        } catch {
+          /* handled globally */
+        }
+      }
+    }
   };
 
   const actualizarNota = (id: string, nota: string) => {
@@ -108,8 +218,39 @@ export default function TomarOrdenPage() {
     );
   };
 
+  const enviarACocina = async () => {
+    if (!orderId || pedido.length === 0) return;
+    try {
+      setSending(true);
+      await api.post(`/pos/orders/${orderId}/send-kitchen`);
+      alert("Comanda enviada a cocina");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error enviando a cocina");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const subtotal = pedido.reduce((s, i) => s + i.articulo.precio * i.cantidad, 0);
   const totalItems = pedido.reduce((s, i) => s + i.cantidad, 0);
+
+  const articulosFiltrados = articulos.filter((a) => a.categoria === categoriaActiva);
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#999" }}>Cargando...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#d32f2f" }}>{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -125,10 +266,10 @@ export default function TomarOrdenPage() {
       </div>
 
       <div className={styles.layout}>
-        {/* ── MENÚ (izquierda) ── */}
+        {/* -- MENU (izquierda) -- */}
         <div className={styles.menuPanel}>
           <div className={styles.categorias}>
-            {CATEGORIAS.map((cat) => (
+            {categorias.map((cat) => (
               <button
                 key={cat}
                 className={`${styles.catBtn} ${categoriaActiva === cat ? styles.catBtnActive : ""}`}
@@ -162,7 +303,7 @@ export default function TomarOrdenPage() {
           </div>
         </div>
 
-        {/* ── PEDIDO (derecha) ── */}
+        {/* -- PEDIDO (derecha) -- */}
         <div className={styles.pedidoPanel}>
           <div className={styles.pedidoHeader}>
             <h3 className={styles.pedidoTitulo}>
@@ -230,10 +371,10 @@ export default function TomarOrdenPage() {
             <div className={styles.pedidoBtns}>
               <button
                 className={styles.btnCocina}
-                disabled={pedido.length === 0}
-                onClick={() => alert("✅ Comanda enviada a cocina")}
+                disabled={pedido.length === 0 || sending}
+                onClick={enviarACocina}
               >
-                🍳 Enviar a cocina
+                🍳 {sending ? "Enviando..." : "Enviar a cocina"}
               </button>
               <Link
                 href={pedido.length > 0 ? `/dashboard/pos/factura/${mesaId}` : "#"}
@@ -245,6 +386,55 @@ export default function TomarOrdenPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal abrir mesa */}
+      {showOpenModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex",
+          alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: 24, width: 380, maxWidth: "90vw",
+          }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: 18 }}>Abrir Mesa {mesaInfo.numero}</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, display: "block" }}>Mesero *</label>
+                <input
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+                  value={openForm.waiter}
+                  onChange={(e) => setOpenForm((f) => ({ ...f, waiter: e.target.value }))}
+                  placeholder="Nombre del mesero"
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, display: "block" }}>Personas</label>
+                <input
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+                  type="number"
+                  min={1}
+                  value={openForm.people}
+                  onChange={(e) => setOpenForm((f) => ({ ...f, people: Number(e.target.value) }))}
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 20 }}>
+              <button
+                style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: "pointer" }}
+                onClick={() => router.push("/dashboard/pos")}
+              >
+                Cancelar
+              </button>
+              <button
+                style={{ padding: "8px 16px", borderRadius: 6, border: "none", background: "#e65100", color: "#fff", cursor: "pointer", fontWeight: 600 }}
+                onClick={handleOpenTable}
+              >
+                Abrir mesa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

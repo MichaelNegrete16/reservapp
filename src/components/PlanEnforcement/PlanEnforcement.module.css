@@ -1,0 +1,278 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.iconWrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ffebee;
+  color: #d32f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 20px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tabActive {
+  background: #fff;
+  color: #1a1a1a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Fix tab content */
+.fixContent {
+  text-align: left;
+}
+
+.overageSection {
+  margin-bottom: 16px;
+}
+
+.overageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.overageLabel {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+.overageBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.itemName {
+  color: #444;
+  font-weight: 500;
+}
+
+.btnDelete {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #d32f2f;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnDelete:hover:not(:disabled) {
+  background: #ffebee;
+}
+
+.btnDelete:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnVerify {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: none;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btnVerify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Upgrade tab content */
+.upgradeContent {
+  text-align: left;
+}
+
+.planCard {
+  background: linear-gradient(135deg, #fce4ec 0%, #fff 60%);
+  border: 2px solid #c2185b;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.planHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c2185b;
+  margin-bottom: 8px;
+}
+
+.planName {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.planPrice {
+  font-size: 28px;
+  font-weight: 800;
+  color: #c2185b;
+  margin-bottom: 12px;
+}
+
+.planFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.planFeatures li {
+  font-size: 13px;
+  color: #444;
+}
+
+.upgradeNote {
+  font-size: 13px;
+  color: #888;
+  margin: 16px 0 12px;
+  text-align: center;
+}
+
+.btnWhatsapp {
+  display: block;
+  text-align: center;
+  padding: 14px;
+  border-radius: 10px;
+  background: #25d366;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: background 0.15s;
+}
+
+.btnWhatsapp:hover {
+  background: #1fb855;
+}
+
+.btnEmail {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  color: #555;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.btnEmail:hover {
+  background: #f5f5f5;
+}
+
+/* Spinner */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ShoppingCart, Lock, ChefHat, UtensilsCrossed } from "lucide-react";
+import { api } from "@/lib/api-client";
 import styles from "./POS.module.css";
 
 export type EstadoMesa = "libre" | "ocupada" | "cuenta-pendiente";
@@ -16,22 +18,8 @@ export interface Mesa {
   personas?: number;
   horaApertura?: string;
   total?: number;
+  orderId?: string;
 }
-
-const MESAS: Mesa[] = [
-  { id: "1",  numero: 1,  zona: "Salón",   capacidad: 4, estado: "ocupada",          mesero: "Carlos R.", personas: 3, horaApertura: "19:15", total: 87500 },
-  { id: "2",  numero: 2,  zona: "Salón",   capacidad: 2, estado: "libre" },
-  { id: "3",  numero: 3,  zona: "Salón",   capacidad: 4, estado: "cuenta-pendiente", mesero: "Laura M.",  personas: 4, horaApertura: "18:30", total: 142000 },
-  { id: "4",  numero: 4,  zona: "Salón",   capacidad: 6, estado: "ocupada",          mesero: "Carlos R.", personas: 5, horaApertura: "19:00", total: 215000 },
-  { id: "5",  numero: 5,  zona: "Salón",   capacidad: 2, estado: "libre" },
-  { id: "6",  numero: 6,  zona: "Salón",   capacidad: 4, estado: "libre" },
-  { id: "7",  numero: 7,  zona: "Terraza", capacidad: 4, estado: "ocupada",          mesero: "Laura M.",  personas: 2, horaApertura: "19:30", total: 54000 },
-  { id: "8",  numero: 8,  zona: "Terraza", capacidad: 6, estado: "libre" },
-  { id: "9",  numero: 9,  zona: "Terraza", capacidad: 4, estado: "ocupada",          mesero: "Jhon P.",   personas: 4, horaApertura: "18:45", total: 176000 },
-  { id: "10", numero: 10, zona: "Terraza", capacidad: 2, estado: "libre" },
-  { id: "11", numero: 11, zona: "Barra",   capacidad: 2, estado: "ocupada",          mesero: "Jhon P.",   personas: 1, horaApertura: "20:00", total: 28000 },
-  { id: "12", numero: 12, zona: "Barra",   capacidad: 4, estado: "cuenta-pendiente", mesero: "Carlos R.", personas: 3, horaApertura: "18:00", total: 98000 },
-];
 
 const ESTADO_CONFIG: Record<EstadoMesa, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   libre:             { label: "Libre",            color: "#388e3c", bg: "#e8f5e9", icon: <UtensilsCrossed size={14} /> },
@@ -46,17 +34,75 @@ function calcularTiempo(hora: string): string {
   const [h, m] = hora.split(":").map(Number);
   const now = new Date();
   const diff = (now.getHours() * 60 + now.getMinutes()) - (h * 60 + m);
-  if (diff < 0) return "—";
+  if (diff < 0) return "--";
   return `${Math.floor(diff / 60)}h ${diff % 60}m`;
 }
 
-export default function POSMesas() {
-  const libres   = MESAS.filter((m) => m.estado === "libre").length;
-  const ocupadas = MESAS.filter((m) => m.estado === "ocupada").length;
-  const cuenta   = MESAS.filter((m) => m.estado === "cuenta-pendiente").length;
-  const ingresos = MESAS.reduce((s, m) => s + (m.total ?? 0), 0);
+function mapStatus(apiStatus: string): EstadoMesa {
+  switch (apiStatus) {
+    case "open": return "ocupada";
+    case "bill-requested": return "cuenta-pendiente";
+    default: return "libre";
+  }
+}
 
-  const zonas = [...new Set(MESAS.map((m) => m.zona))];
+export default function POSMesas() {
+  const [mesas, setMesas] = useState<Mesa[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTables = useCallback(async () => {
+    try {
+      const res = await api.get<{ ok: boolean; data: Record<string, unknown>[] }>("/pos/tables");
+      const mapped: Mesa[] = (res.data ?? []).map((t) => ({
+        id: t.id as string,
+        numero: (t.number as number) ?? (t.numero as number) ?? 0,
+        zona: (t.zone as string) ?? (t.zona as string) ?? "Salón",
+        capacidad: (t.capacity as number) ?? (t.capacidad as number) ?? 4,
+        estado: mapStatus((t.status as string) ?? "libre"),
+        mesero: (t.waiter as string) ?? (t.mesero as string) ?? undefined,
+        personas: (t.people as number) ?? (t.personas as number) ?? undefined,
+        horaApertura: (t.openedAt as string) ?? (t.horaApertura as string) ?? undefined,
+        total: (t.total as number) ?? undefined,
+        orderId: (t.orderId as string) ?? (t.activeOrderId as string) ?? undefined,
+      }));
+      setMesas(mapped);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error cargando mesas");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTables();
+    const interval = setInterval(fetchTables, 10000);
+    return () => clearInterval(interval);
+  }, [fetchTables]);
+
+  const libres   = mesas.filter((m) => m.estado === "libre").length;
+  const ocupadas = mesas.filter((m) => m.estado === "ocupada").length;
+  const cuenta   = mesas.filter((m) => m.estado === "cuenta-pendiente").length;
+  const ingresos = mesas.reduce((s, m) => s + (m.total ?? 0), 0);
+
+  const zonas = [...new Set(mesas.map((m) => m.zona))];
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#999" }}>Cargando mesas...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#d32f2f" }}>{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -105,7 +151,7 @@ export default function POSMesas() {
         <div key={zona} className={styles.zonaSection}>
           <h2 className={styles.zonaTitle}>📍 {zona}</h2>
           <div className={styles.mesasGrid}>
-            {MESAS.filter((m) => m.zona === zona).map((mesa) => {
+            {mesas.filter((m) => m.zona === zona).map((mesa) => {
               const cfg = ESTADO_CONFIG[mesa.estado];
               return (
                 <div key={mesa.id} className={styles.mesaCard} style={{ borderTop: `4px solid ${cfg.color}` }}>
@@ -128,12 +174,14 @@ export default function POSMesas() {
                       <div className={styles.mesaInfoRow}>
                         <span>Personas</span><span>{mesa.personas}</span>
                       </div>
-                      <div className={styles.mesaInfoRow}>
-                        <span>Tiempo</span><span>{calcularTiempo(mesa.horaApertura!)}</span>
-                      </div>
+                      {mesa.horaApertura && (
+                        <div className={styles.mesaInfoRow}>
+                          <span>Tiempo</span><span>{calcularTiempo(mesa.horaApertura)}</span>
+                        </div>
+                      )}
                       <div className={styles.mesaInfoRow}>
                         <span>Total acum.</span>
-                        <span className={styles.mesaTotal}>{formatCOP(mesa.total!)}</span>
+                        <span className={styles.mesaTotal}>{formatCOP(mesa.total ?? 0)}</span>
                       </div>
                     </div>
                   )}

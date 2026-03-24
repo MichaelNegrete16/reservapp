@@ -1,54 +1,97 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Plus, Save, Trash2, GripVertical } from "lucide-react";
+import { api } from "@/lib/api-client";
 import styles from "./Mesas.module.css";
+
+interface ZoneItem {
+  id: string;
+  name: string;
+}
 
 interface TableItem {
   id: string;
   number: string;
   shape: "round" | "square";
   capacity: number;
-  zone: string;
+  zoneId: string;
+  zoneName: string;
   x: number;
   y: number;
   selected: boolean;
 }
 
-const ZONES = ["Salón principal", "Terraza exterior", "Barra lounge", "Sala VIP"];
 const CAPACITIES = [2, 4, 6, 8, 10, 12];
 
-const INITIAL_TABLES: TableItem[] = [
-  { id: "t1", number: "01", shape: "round", capacity: 4, zone: "Salón principal", x: 120, y: 80, selected: false },
-  { id: "t2", number: "03", shape: "square", capacity: 2, zone: "Salón principal", x: 320, y: 220, selected: false },
-  { id: "t3", number: "12", shape: "square", capacity: 6, zone: "Salón principal", x: 480, y: 120, selected: true },
-];
-
 export default function MesasPage() {
+  const [zones, setZones] = useState<ZoneItem[]>([]);
   const [shape, setShape] = useState<"round" | "square">("round");
   const [tableNumber, setTableNumber] = useState("");
   const [capacity, setCapacity] = useState(4);
-  const [zone, setZone] = useState(ZONES[0]);
-  const [tables, setTables] = useState<TableItem[]>(INITIAL_TABLES);
+  const [zoneId, setZoneId] = useState("");
+  const [tables, setTables] = useState<TableItem[]>([]);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragging = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
+  const originalTables = useRef<TableItem[]>([]);
 
-  const handleAddTable = () => {
-    if (!tableNumber.trim()) return;
-    const newTable: TableItem = {
-      id: `t${Date.now()}`,
-      number: tableNumber,
-      shape,
-      capacity,
-      zone,
-      x: 80 + Math.random() * 300,
-      y: 80 + Math.random() * 200,
-      selected: false,
-    };
-    setTables((prev) => [...prev, newTable]);
-    setTableNumber("");
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [zonesRes, tablesRes] = await Promise.all([
+        api.get<{ ok: boolean; data: ZoneItem[] }>("/zones"),
+        api.get<{ ok: boolean; data: Array<{ id: string; number: string; shape: "round" | "square"; capacity: number; zoneId: string; x: number; y: number }> }>("/tables"),
+      ]);
+      const zonesList = zonesRes.data;
+      setZones(zonesList);
+      if (zonesList.length > 0 && !zoneId) {
+        setZoneId(zonesList[0].id);
+      }
+      const zoneMap = new Map(zonesList.map((z) => [z.id, z.name]));
+      const mapped: TableItem[] = tablesRes.data.map((t) => ({
+        ...t,
+        zoneName: zoneMap.get(t.zoneId) || "Sin zona",
+        selected: false,
+      }));
+      setTables(mapped);
+      originalTables.current = mapped;
+    } catch {
+      /* handled globally */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleAddTable = async () => {
+    if (!tableNumber.trim() || !zoneId) return;
+    setSaving(true);
+    try {
+      const x = 80 + Math.random() * 300;
+      const y = 80 + Math.random() * 200;
+      const res = await api.post<{ ok: boolean; data: { id: string; number: string; shape: "round" | "square"; capacity: number; zoneId: string; x: number; y: number } }>("/tables", {
+        number: tableNumber, shape, capacity, zoneId, x, y,
+      });
+      const zoneMap = new Map(zones.map((z) => [z.id, z.name]));
+      const newTable: TableItem = {
+        ...res.data,
+        zoneName: zoneMap.get(res.data.zoneId) || "Sin zona",
+        selected: false,
+      };
+      setTables((prev) => [...prev, newTable]);
+      setTableNumber("");
+    } catch {
+      // PlanLimitError is handled globally by PlanLimitModal
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleMouseDown = useCallback(
@@ -69,12 +112,14 @@ export default function MesasPage() {
   );
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dragging.current || !canvasRef.current) return;
+    const d = dragging.current;
+    if (!d || !canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left - dragging.current.offsetX, rect.width - 80));
-    const y = Math.max(0, Math.min(e.clientY - rect.top - dragging.current.offsetY, rect.height - 80));
+    const x = Math.max(0, Math.min(e.clientX - rect.left - d.offsetX, rect.width - 80));
+    const y = Math.max(0, Math.min(e.clientY - rect.top - d.offsetY, rect.height - 80));
+    const dragId = d.id;
     setTables((prev) =>
-      prev.map((t) => (t.id === dragging.current!.id ? { ...t, x, y } : t))
+      prev.map((t) => (t.id === dragId ? { ...t, x, y } : t))
     );
   }, []);
 
@@ -82,14 +127,44 @@ export default function MesasPage() {
     dragging.current = null;
   }, []);
 
-  const handleDelete = (id: string) => {
-    setTables((prev) => prev.filter((t) => t.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await api.del(`/tables/${id}`);
+      setTables((prev) => prev.filter((t) => t.id !== id));
+    } catch {
+      /* handled globally */
+    }
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await api.post("/tables/bulk-update", {
+        tables: tables.map((t) => ({ id: t.id, x: t.x, y: t.y })),
+      });
+      originalTables.current = [...tables];
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      /* handled globally */
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleDiscard = () => {
+    setTables(originalTables.current.map((t) => ({ ...t, selected: false })));
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>
+          Cargando mesas...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -145,17 +220,17 @@ export default function MesasPage() {
           <label className={styles.label}>Zona</label>
           <select
             className={styles.input}
-            value={zone}
-            onChange={(e) => setZone(e.target.value)}
+            value={zoneId}
+            onChange={(e) => setZoneId(e.target.value)}
           >
-            {ZONES.map((z) => (
-              <option key={z}>{z}</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>{z.name}</option>
             ))}
           </select>
         </div>
 
-        <button className={styles.btnAdd} onClick={handleAddTable}>
-          <Plus size={16} /> Agregar al plano
+        <button className={styles.btnAdd} onClick={handleAddTable} disabled={saving}>
+          <Plus size={16} /> {saving ? "Agregando..." : "Agregar al plano"}
         </button>
 
         {/* Active Tables List */}
@@ -171,7 +246,7 @@ export default function MesasPage() {
                 <div className={styles.tableListInfo}>
                   <span className={styles.tableListName}>Mesa {t.number}</span>
                   <span className={styles.tableListMeta}>
-                    {t.capacity} pax · {t.zone.split(" ")[0]}
+                    {t.capacity} pax · {t.zoneName.split(" ")[0]}
                   </span>
                 </div>
                 <button
@@ -232,15 +307,15 @@ export default function MesasPage() {
         <div className={styles.bottomBar}>
           <div className={styles.autosave}>
             <span className={styles.autosaveDot} />
-            Autoguardado activo · Última edición hace 2 min
+            Autoguardado activo
           </div>
           <div className={styles.bottomActions}>
-            <button className={styles.btnDiscard} onClick={() => setTables(INITIAL_TABLES)}>
+            <button className={styles.btnDiscard} onClick={handleDiscard}>
               Descartar cambios
             </button>
-            <button className={styles.btnSave} onClick={handleSave}>
+            <button className={styles.btnSave} onClick={handleSave} disabled={saving}>
               <Save size={16} />
-              {saved ? "¡Guardado!" : "Guardar cambios"}
+              {saving ? "Guardando..." : saved ? "¡Guardado!" : "Guardar cambios"}
             </button>
           </div>
         </div>

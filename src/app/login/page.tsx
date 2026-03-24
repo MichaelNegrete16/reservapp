@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
-import { setSession, MOCK_USERS } from "@/lib/auth";
+import { login } from "@/lib/auth";
 import styles from "./Login.module.css";
 
 interface Errors {
@@ -43,21 +43,18 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setLoading(true);
-    // Simular delay de red
-    await new Promise((r) => setTimeout(r, 600));
+    setErrors({});
 
-    const user = MOCK_USERS.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (!user) {
-      setErrors({ general: "Credenciales incorrectas. Verifica tu correo y contraseña." });
+    try {
+      const user = await login(email, password);
+      window.location.href = user.role === "superadmin" ? "/admin" : "/dashboard";
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Credenciales incorrectas. Verifica tu correo y contraseña.";
+      setErrors({ general: message });
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSession(user.role);
-    window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
   };
 
   return (

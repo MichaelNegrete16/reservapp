@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { api } from "@/lib/api-client";
 import styles from "./Menu.module.css";
 
-/* ─── Tipos ─── */
+/* --- Tipos --- */
 interface Articulo {
   id: string;
   nombre: string;
@@ -17,29 +18,6 @@ interface Articulo {
 
 const CATEGORIAS = ["Todas", "Entradas", "Platos principales", "Bebidas", "Postres", "Especiales"];
 
-const ARTICULOS_INICIALES: Articulo[] = [
-  { id: "e1", nombre: "Tabla de quesos",       descripcion: "Selección de quesos artesanales con mermeladas",    precio: 28000, categoria: "Entradas",          emoji: "🧀", disponible: true  },
-  { id: "e2", nombre: "Ceviche de camarón",    descripcion: "Camarón tigre, limón, cilantro y ají",             precio: 32000, categoria: "Entradas",          emoji: "🍤", disponible: true  },
-  { id: "e3", nombre: "Bruschetta",             descripcion: "Pan tostado, tomate, albahaca y mozzarella",       precio: 18000, categoria: "Entradas",          emoji: "🍞", disponible: true  },
-  { id: "e4", nombre: "Sopa del día",           descripcion: "Consultar disponibilidad con el mesero",           precio: 15000, categoria: "Entradas",          emoji: "🥣", disponible: false },
-  { id: "p1", nombre: "Filete de res",          descripcion: "Término a elección, papas y ensalada",             precio: 68000, categoria: "Platos principales", emoji: "🥩", disponible: true  },
-  { id: "p2", nombre: "Pasta carbonara",        descripcion: "Espagueti, panceta, huevo y parmesano",            precio: 42000, categoria: "Platos principales", emoji: "🍝", disponible: true  },
-  { id: "p3", nombre: "Pollo a la plancha",     descripcion: "Pechuga, verduras salteadas y arroz integral",     precio: 38000, categoria: "Platos principales", emoji: "🍗", disponible: true  },
-  { id: "p4", nombre: "Salmón al limón",        descripcion: "Salmón fresco, salsa de alcaparras y puré",        precio: 58000, categoria: "Platos principales", emoji: "🐟", disponible: true  },
-  { id: "p5", nombre: "Risotto de hongos",      descripcion: "Arroz arbóreo, hongos silvestres y trufa",         precio: 48000, categoria: "Platos principales", emoji: "🍄", disponible: false },
-  { id: "b1", nombre: "Limonada de coco",       descripcion: "Limonada natural con coco fresco",                 precio: 12000, categoria: "Bebidas",           emoji: "🥤", disponible: true  },
-  { id: "b2", nombre: "Jugo natural",            descripcion: "Naranja, mango, mora o maracuyá",                 precio: 10000, categoria: "Bebidas",           emoji: "🧃", disponible: true  },
-  { id: "b3", nombre: "Agua mineral",            descripcion: "Con o sin gas 600ml",                             precio: 6000,  categoria: "Bebidas",           emoji: "💧", disponible: true  },
-  { id: "b4", nombre: "Cerveza artesanal",       descripcion: "Rubia, roja o negra 330ml",                       precio: 16000, categoria: "Bebidas",           emoji: "🍺", disponible: true  },
-  { id: "b5", nombre: "Vino copa",               descripcion: "Tinto o blanco, selección del sommelier",         precio: 22000, categoria: "Bebidas",           emoji: "🍷", disponible: true  },
-  { id: "b6", nombre: "Café espresso",           descripcion: "Grano origen Colombia, doble extracción",         precio: 8000,  categoria: "Bebidas",           emoji: "☕", disponible: true  },
-  { id: "d1", nombre: "Tiramisú",                descripcion: "Clásico italiano con café y mascarpone",          precio: 18000, categoria: "Postres",           emoji: "🍰", disponible: true  },
-  { id: "d2", nombre: "Brownie caliente",        descripcion: "Con helado de vainilla y salsa de caramelo",      precio: 16000, categoria: "Postres",           emoji: "🍫", disponible: true  },
-  { id: "d3", nombre: "Cheesecake de frutos",    descripcion: "Base de galleta, crema y coulis de frutos rojos", precio: 20000, categoria: "Postres",           emoji: "🍓", disponible: true  },
-  { id: "s1", nombre: "Bandeja paisa",           descripcion: "Plato típico completo: carne, frijoles y más",   precio: 45000, categoria: "Especiales",        emoji: "🍲", disponible: true  },
-  { id: "s2", nombre: "Menú ejecutivo",          descripcion: "Entrada + plato + bebida + postre",              precio: 52000, categoria: "Especiales",        emoji: "⭐", disponible: true  },
-];
-
 const EMOJIS = ["🍕","🍔","🥩","🍝","🍗","🐟","🥗","🍜","🍣","🥘","🍤","🧀","🍞","🥣","🍄","🥤","🧃","💧","🍺","🍷","☕","🍰","🍫","🍓","🍲","⭐"];
 
 const formatCOP = (v: number) =>
@@ -50,13 +28,42 @@ const VACIO: Omit<Articulo, "id"> = {
 };
 
 export default function GestorMenuPage() {
-  const [articulos, setArticulos] = useState<Articulo[]>(ARTICULOS_INICIALES);
+  const [articulos, setArticulos] = useState<Articulo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [categoriaActiva, setCategoriaActiva] = useState("Todas");
   const [busqueda, setBusqueda] = useState("");
   const [modal, setModal] = useState<"nuevo" | "editar" | null>(null);
   const [form, setForm] = useState<Omit<Articulo, "id">>(VACIO);
   const [editId, setEditId] = useState<string | null>(null);
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  const fetchMenu = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.get<{ ok: boolean; data: Record<string, unknown>[] }>("/menu");
+      const mapped: Articulo[] = (res.data ?? []).map((item) => ({
+        id: item.id as string,
+        nombre: (item.name as string) ?? (item.nombre as string) ?? "",
+        descripcion: (item.description as string) ?? (item.descripcion as string) ?? "",
+        precio: (item.price as number) ?? (item.precio as number) ?? 0,
+        categoria: (item.category as string) ?? (item.categoria as string) ?? "Otros",
+        emoji: (item.emoji as string) ?? "🍽️",
+        disponible: (item.available as boolean) ?? (item.disponible as boolean) ?? true,
+      }));
+      setArticulos(mapped);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error cargando menú");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMenu();
+  }, [fetchMenu]);
 
   const filtrados = articulos.filter((a) => {
     const matchCat = categoriaActiva === "Todas" || a.categoria === categoriaActiva;
@@ -64,15 +71,29 @@ export default function GestorMenuPage() {
     return matchCat && matchBus;
   });
 
-  const toggleDisponible = (id: string) => {
+  const toggleDisponible = async (id: string) => {
+    // Optimistic update
     setArticulos((prev) =>
       prev.map((a) => a.id === id ? { ...a, disponible: !a.disponible } : a)
     );
+    try {
+      await api.patch(`/menu/${id}/availability`);
+    } catch (err) {
+      // Revert on error
+      setArticulos((prev) =>
+        prev.map((a) => a.id === id ? { ...a, disponible: !a.disponible } : a)
+      );
+      alert(err instanceof Error ? err.message : "Error cambiando disponibilidad");
+    }
   };
 
-  const eliminar = (id: string) => {
-    if (confirm("¿Eliminar este artículo?")) {
+  const eliminar = async (id: string) => {
+    if (!confirm("¿Eliminar este artículo?")) return;
+    try {
+      await api.del(`/menu/${id}`);
       setArticulos((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error eliminando artículo");
     }
   };
 
@@ -98,17 +119,43 @@ export default function GestorMenuPage() {
     return Object.keys(next).length === 0;
   };
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!validar()) return;
-    if (modal === "nuevo") {
-      const nuevoId = `custom-${Date.now()}`;
-      setArticulos((prev) => [...prev, { id: nuevoId, ...form }]);
-    } else if (editId) {
-      setArticulos((prev) =>
-        prev.map((a) => a.id === editId ? { ...a, ...form } : a)
-      );
+    try {
+      setSaving(true);
+      const payload = {
+        name: form.nombre,
+        description: form.descripcion,
+        price: form.precio,
+        category: form.categoria,
+        emoji: form.emoji,
+        available: form.disponible,
+      };
+
+      if (modal === "nuevo") {
+        const res = await api.post<{ ok: boolean; data: Record<string, unknown> }>("/menu", payload);
+        const newItem: Articulo = {
+          id: res.data.id as string,
+          nombre: form.nombre,
+          descripcion: form.descripcion,
+          precio: form.precio,
+          categoria: form.categoria,
+          emoji: form.emoji,
+          disponible: form.disponible,
+        };
+        setArticulos((prev) => [...prev, newItem]);
+      } else if (editId) {
+        await api.patch(`/menu/${editId}`, payload);
+        setArticulos((prev) =>
+          prev.map((a) => a.id === editId ? { ...a, ...form } : a)
+        );
+      }
+      setModal(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error guardando artículo");
+    } finally {
+      setSaving(false);
     }
-    setModal(null);
   };
 
   const disponibles = articulos.filter((a) => a.disponible).length;
@@ -155,56 +202,64 @@ export default function GestorMenuPage() {
 
       {/* Tabla */}
       <div className={styles.tableCard}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Artículo</th>
-              <th>Categoría</th>
-              <th>Precio</th>
-              <th>Disponible</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtrados.map((art) => (
-              <tr key={art.id}>
-                <td>
-                  <div className={styles.articuloCell}>
-                    <span className={styles.articuloEmoji}>{art.emoji}</span>
-                    <div>
-                      <div className={styles.articuloNombre}>{art.nombre}</div>
-                      <div className={styles.articuloDesc}>{art.descripcion}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <span className={styles.catBadge}>{art.categoria}</span>
-                </td>
-                <td className={styles.tdPrecio}>{formatCOP(art.precio)}</td>
-                <td>
-                  <button
-                    className={`${styles.toggleBtn} ${art.disponible ? styles.toggleOn : styles.toggleOff}`}
-                    onClick={() => toggleDisponible(art.id)}
-                  >
-                    {art.disponible ? "✓ Disponible" : "✗ No disponible"}
-                  </button>
-                </td>
-                <td>
-                  <div className={styles.acciones}>
-                    <button className={styles.btnEditar} onClick={() => abrirEditar(art)}>
-                      <Pencil size={14} />
-                    </button>
-                    <button className={styles.btnEliminar} onClick={() => eliminar(art.id)}>
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtrados.length === 0 && (
-          <div className={styles.vacio}>No se encontraron artículos.</div>
+        {loading ? (
+          <div style={{ padding: 40, textAlign: "center", color: "#999" }}>Cargando menú...</div>
+        ) : error ? (
+          <div style={{ padding: 40, textAlign: "center", color: "#d32f2f" }}>{error}</div>
+        ) : (
+          <>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Artículo</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Disponible</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((art) => (
+                  <tr key={art.id}>
+                    <td>
+                      <div className={styles.articuloCell}>
+                        <span className={styles.articuloEmoji}>{art.emoji}</span>
+                        <div>
+                          <div className={styles.articuloNombre}>{art.nombre}</div>
+                          <div className={styles.articuloDesc}>{art.descripcion}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={styles.catBadge}>{art.categoria}</span>
+                    </td>
+                    <td className={styles.tdPrecio}>{formatCOP(art.precio)}</td>
+                    <td>
+                      <button
+                        className={`${styles.toggleBtn} ${art.disponible ? styles.toggleOn : styles.toggleOff}`}
+                        onClick={() => toggleDisponible(art.id)}
+                      >
+                        {art.disponible ? "✓ Disponible" : "✗ No disponible"}
+                      </button>
+                    </td>
+                    <td>
+                      <div className={styles.acciones}>
+                        <button className={styles.btnEditar} onClick={() => abrirEditar(art)}>
+                          <Pencil size={14} />
+                        </button>
+                        <button className={styles.btnEliminar} onClick={() => eliminar(art.id)}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filtrados.length === 0 && (
+              <div className={styles.vacio}>No se encontraron artículos.</div>
+            )}
+          </>
         )}
       </div>
 
@@ -296,8 +351,8 @@ export default function GestorMenuPage() {
 
             <div className={styles.modalFooter}>
               <button className={styles.btnCancelar} onClick={() => setModal(null)}>Cancelar</button>
-              <button className={styles.btnGuardar} onClick={guardar}>
-                {modal === "nuevo" ? "Agregar artículo" : "Guardar cambios"}
+              <button className={styles.btnGuardar} onClick={guardar} disabled={saving}>
+                {saving ? "Guardando..." : modal === "nuevo" ? "Agregar artículo" : "Guardar cambios"}
               </button>
             </div>
           </div>

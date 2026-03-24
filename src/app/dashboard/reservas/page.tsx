@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Reserva, EstadoReserva } from "@/types/reservas";
 import { listarReservas } from "@/api/reservas.api";
+import { api } from "@/lib/api-client";
 import { formatFecha } from "@/helpers/constants";
+import { useReservasSocket } from "@/hooks/useReservasSocket";
 import {
   ESTADO_LABELS,
   ESTADO_COLORS,
@@ -33,13 +35,32 @@ export default function ConsultarReservas() {
   const [selected, setSelected] = useState<Reserva | null>(null);
   const [showExcelModal, setShowExcelModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
+  const prevCountRef = useRef<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    audioRef.current = new Audio("/sounds/nueva-reserva.mp3");
+    audioRef.current.volume = 0.7;
+  }, []);
 
   const cargarReservas = useCallback(async () => {
     setLoading(true);
     try {
       const data = await listarReservas({ fecha });
+      // Detect new reservations
+      if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
+        const nuevas = data.length - prevCountRef.current;
+        audioRef.current?.play().catch(() => {});
+        setToast(`🔔 ${nuevas} nueva${nuevas > 1 ? "s" : ""} reserva${nuevas > 1 ? "s" : ""}`);
+        setTimeout(() => setToast(null), 4000);
+      }
+      prevCountRef.current = data.length;
       setReservas(data);
       setSelected(null);
+    } catch {
+      /* handled globally */
     } finally {
       setLoading(false);
     }
@@ -49,13 +70,37 @@ export default function ConsultarReservas() {
     cargarReservas();
   }, [cargarReservas]);
 
+  // WebSocket: listen for new reservations and status changes
+  useReservasSocket({
+    fecha,
+    onNuevaReserva: () => {
+      audioRef.current?.play().catch(() => {});
+      setToast("🔔 Nueva reserva recibida");
+      setTimeout(() => setToast(null), 4000);
+    },
+    onUpdate: () => {
+      cargarReservas();
+    },
+  });
+
+  // Status change handler
+  const cambiarEstado = async (id: string, estado: string) => {
+    try {
+      await api.patch(`/reservations/${id}/status`, { estado });
+      // Refresh after status change
+      await cargarReservas();
+    } catch {
+      /* handled globally */
+    }
+  };
+
   // Apply zone filter
   const reservasFiltradas = zonaFiltro
     ? reservas.filter((r) => r.zona === zonaFiltro)
     : reservas;
 
   // Get unique zones for filter
-  const zonas = [...new Set(reservas.map((r) => r.zona))];
+  const zonas = [...new Set(reservas.map((r) => r.zona).filter(Boolean))] as string[];
 
   // Group by estado for flujo view
   const reservasPorEstado = (estado: EstadoReserva) =>
@@ -80,6 +125,19 @@ export default function ConsultarReservas() {
 
   return (
     <div className={styles.page}>
+      {/* Toast notification */}
+      {toast && (
+        <div style={{
+          position: "fixed", top: 20, right: 20, zIndex: 9999,
+          padding: "12px 20px", borderRadius: 10,
+          background: "#1a1a1a", color: "#fff",
+          fontWeight: 500, fontSize: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+          animation: "slideIn 0.3s ease",
+        }}>
+          {toast}
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className={styles.topBar}>
         <div className={styles.topBarLeft}>
@@ -207,13 +265,13 @@ export default function ConsultarReservas() {
                           <>
                             <button
                               className={`${styles.btnAccion} ${styles.btnAccionPrimary}`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); cambiarEstado(r.id, "confirmada"); }}
                             >
                               Confirmar
                             </button>
                             <button
                               className={`${styles.btnAccion} ${styles.btnAccionOutline}`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); cambiarEstado(r.id, "cancelada"); }}
                             >
                               Cancelar
                             </button>
@@ -223,19 +281,19 @@ export default function ConsultarReservas() {
                           <>
                             <button
                               className={`${styles.btnAccion} ${styles.btnAccionOutline}`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); cambiarEstado(r.id, "sentada"); }}
                             >
                               Sentar
                             </button>
                             <button
                               className={`${styles.btnAccion} ${styles.btnAccionOutline}`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); cambiarEstado(r.id, "no_asistio"); }}
                             >
                               No asistió
                             </button>
                             <button
                               className={`${styles.btnAccion} ${styles.btnAccionOutline}`}
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); cambiarEstado(r.id, "cancelada"); }}
                             >
                               Cancelar
                             </button>
@@ -244,7 +302,7 @@ export default function ConsultarReservas() {
                         {estado === "sentada" && (
                           <button
                             className={`${styles.btnAccion} ${styles.btnAccionOutline}`}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation(); cambiarEstado(r.id, "finalizada"); }}
                           >
                             Finalizar
                           </button>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import Toggle from "@/components/Toggle";
 import Modal from "@/components/Modal";
+import { api } from "@/lib/api-client";
 import styles from "./Zonas.module.css";
 
 interface Zona {
@@ -16,25 +17,36 @@ interface Zona {
   active: boolean;
 }
 
-const INITIAL_ZONAS: Zona[] = [
-  { id: "z1", name: "Salón principal", type: "Interior", floor: "Planta baja", description: "Área principal de mesas con acceso central al buffet.", capacity: 120, active: true },
-  { id: "z2", name: "Terraza exterior", type: "Exterior", floor: "Vista al jardín", description: "Comedor al aire libre rodeado de vegetación.", capacity: 45, active: true },
-  { id: "z3", name: "Suite privada A", type: "Eventos", floor: "Segundo piso", description: "Área exclusiva para eventos corporativos. Actualmente cerrada.", capacity: 20, active: false },
-  { id: "z4", name: "Barra lounge", type: "Interior", floor: "Área de entrada", description: "Asientos altos para servicio rápido y cócteles.", capacity: 35, active: true },
-];
-
 const ITEMS_PER_PAGE = 4;
 
 export default function ZonasPage() {
-  const [zonas, setZonas] = useState<Zona[]>(INITIAL_ZONAS);
+  const [zonas, setZonas] = useState<Zona[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editZona, setEditZona] = useState<Zona | null>(null);
   const [formName, setFormName] = useState("");
   const [formDesc, setFormDesc] = useState("");
   const [formCapacity, setFormCapacity] = useState(20);
-  const [formType, setFormType] = useState("Indoor");
-  const [formFloor, setFormFloor] = useState("Ground Floor");
+  const [formType, setFormType] = useState("interior");
+  const [formFloor, setFormFloor] = useState("Planta baja");
+
+  const fetchZonas = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get<{ ok: boolean; data: Zona[] }>("/zones");
+      setZonas(res.data);
+    } catch {
+      /* handled globally */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchZonas();
+  }, [fetchZonas]);
 
   const totalPages = Math.ceil(zonas.length / ITEMS_PER_PAGE);
   const paged = zonas.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -43,14 +55,19 @@ export default function ZonasPage() {
   const activeCount = zonas.filter((z) => z.active).length;
   const maintenanceCount = zonas.filter((z) => !z.active).length;
 
-  const toggleZona = (id: string) => {
-    setZonas((prev) => prev.map((z) => z.id === id ? { ...z, active: !z.active } : z));
+  const toggleZona = async (id: string) => {
+    try {
+      await api.patch(`/zones/${id}/toggle`);
+      setZonas((prev) => prev.map((z) => z.id === id ? { ...z, active: !z.active } : z));
+    } catch {
+      /* handled globally */
+    }
   };
 
   const openAdd = () => {
     setEditZona(null);
     setFormName(""); setFormDesc(""); setFormCapacity(20);
-    setFormType("Interior"); setFormFloor("Planta baja");
+    setFormType("interior"); setFormFloor("Planta baja");
     setShowModal(true);
   };
 
@@ -62,24 +79,36 @@ export default function ZonasPage() {
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formName.trim()) return;
-    if (editZona) {
-      setZonas((prev) => prev.map((z) => z.id === editZona.id
-        ? { ...z, name: formName, description: formDesc, capacity: formCapacity, type: formType, floor: formFloor }
-        : z
-      ));
-    } else {
-      setZonas((prev) => [...prev, {
-        id: `z${Date.now()}`, name: formName, description: formDesc,
-        capacity: formCapacity, type: formType, floor: formFloor, active: true,
-      }]);
+    setSaving(true);
+    try {
+      if (editZona) {
+        const res = await api.patch<{ ok: boolean; data: Zona }>(`/zones/${editZona.id}`, {
+          name: formName, description: formDesc, capacity: formCapacity, type: formType, floor: formFloor,
+        });
+        setZonas((prev) => prev.map((z) => z.id === editZona.id ? res.data : z));
+      } else {
+        const res = await api.post<{ ok: boolean; data: Zona }>("/zones", {
+          name: formName, description: formDesc, capacity: formCapacity, type: formType, floor: formFloor,
+        });
+        setZonas((prev) => [...prev, res.data]);
+      }
+      setShowModal(false);
+    } catch {
+      /* handled globally */
+    } finally {
+      setSaving(false);
     }
-    setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    setZonas((prev) => prev.filter((z) => z.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await api.del(`/zones/${id}`);
+      setZonas((prev) => prev.filter((z) => z.id !== id));
+    } catch {
+      /* handled globally */
+    }
   };
 
   return (
@@ -115,71 +144,80 @@ export default function ZonasPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className={styles.tableCard}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th />
-              <th>Nombre de zona</th>
-              <th>Descripción</th>
-              <th>Capacidad máx.</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paged.map((z) => (
-              <tr key={z.id} className={!z.active ? styles.rowInactive : ""}>
-                <td>
-                  <div className={styles.zoneIcon}>🪑</div>
-                </td>
-                <td>
-                  <div className={styles.zoneName}>{z.name}</div>
-                  <div className={styles.zoneMeta}>{z.type} · {z.floor}</div>
-                </td>
-                <td className={styles.zoneDesc}>{z.description}</td>
-                <td>
-                  <span className={styles.capacityBadge}>👥 {z.capacity} pax</span>
-                </td>
-                <td>
-                  <Toggle checked={z.active} onChange={() => toggleZona(z.id)} />
-                </td>
-                <td>
-                  <div className={styles.actions}>
-                    <button className={styles.actionBtn} onClick={() => openEdit(z)}>
-                      <Pencil size={16} />
-                    </button>
-                    <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => handleDelete(z.id)}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Loading */}
+      {loading && (
+        <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>
+          Cargando zonas...
+        </div>
+      )}
 
-        {/* Pagination */}
-        <div className={styles.pagination}>
-          <span className={styles.paginationInfo}>
-            Mostrando 1 a {paged.length} de {zonas.length} zonas
-          </span>
-          <div className={styles.pageButtons}>
-            <button className={styles.pageBtn} disabled={page === 1} onClick={() => setPage(page - 1)}>‹</button>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                className={`${styles.pageBtn} ${page === i + 1 ? styles.pageBtnActive : ""}`}
-                onClick={() => setPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button className={styles.pageBtn} disabled={page === totalPages} onClick={() => setPage(page + 1)}>›</button>
+      {/* Table */}
+      {!loading && (
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th />
+                <th>Nombre de zona</th>
+                <th>Descripción</th>
+                <th>Capacidad máx.</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paged.map((z) => (
+                <tr key={z.id} className={!z.active ? styles.rowInactive : ""}>
+                  <td>
+                    <div className={styles.zoneIcon}>🪑</div>
+                  </td>
+                  <td>
+                    <div className={styles.zoneName}>{z.name}</div>
+                    <div className={styles.zoneMeta}>{z.type} · {z.floor}</div>
+                  </td>
+                  <td className={styles.zoneDesc}>{z.description}</td>
+                  <td>
+                    <span className={styles.capacityBadge}>👥 {z.capacity} pax</span>
+                  </td>
+                  <td>
+                    <Toggle checked={z.active} onChange={() => toggleZona(z.id)} />
+                  </td>
+                  <td>
+                    <div className={styles.actions}>
+                      <button className={styles.actionBtn} onClick={() => openEdit(z)}>
+                        <Pencil size={16} />
+                      </button>
+                      <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => handleDelete(z.id)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          <div className={styles.pagination}>
+            <span className={styles.paginationInfo}>
+              Mostrando 1 a {paged.length} de {zonas.length} zonas
+            </span>
+            <div className={styles.pageButtons}>
+              <button className={styles.pageBtn} disabled={page === 1} onClick={() => setPage(page - 1)}>‹</button>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  className={`${styles.pageBtn} ${page === i + 1 ? styles.pageBtnActive : ""}`}
+                  onClick={() => setPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button className={styles.pageBtn} disabled={page === totalPages} onClick={() => setPage(page + 1)}>›</button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modal */}
       {showModal && (
@@ -189,8 +227,8 @@ export default function ZonasPage() {
           footer={
             <>
               <button className={styles.btnCancel} onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className={styles.btnSave} onClick={handleSave}>
-                {editZona ? "Guardar cambios" : "Agregar zona"}
+              <button className={styles.btnSave} onClick={handleSave} disabled={saving}>
+                {saving ? "Guardando..." : editZona ? "Guardar cambios" : "Agregar zona"}
               </button>
             </>
           }
@@ -208,7 +246,12 @@ export default function ZonasPage() {
               <div className={styles.modalField}>
                 <label className={styles.modalLabel}>Tipo</label>
                 <select className={styles.modalInput} value={formType} onChange={(e) => setFormType(e.target.value)}>
-                  {["Interior", "Exterior", "Eventos", "VIP"].map((t) => <option key={t}>{t}</option>)}
+                  {[
+                    { value: "interior", label: "Interior" },
+                    { value: "exterior", label: "Exterior" },
+                    { value: "eventos", label: "Eventos" },
+                    { value: "vip", label: "VIP" },
+                  ].map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
               <div className={styles.modalField}>

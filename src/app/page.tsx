@@ -52,17 +52,33 @@ const FEATURES = [
 ];
 
 const PLAN_FREE = [
-  "Hasta 50 reservas al mes",
-  "Mapa de mesas básico",
-  "Widget estándar",
-  "Soporte por email",
+  "Hasta 50 reservas/mes",
+  "2 zonas, 5 mesas",
+  "15 artículos en el menú",
+  "Widget de reservas público",
+  "Gestión de horarios y turnos",
+  "1 usuario",
 ];
 
 const PLAN_PRO = [
   "Reservas ilimitadas",
-  "Mapa interactivo avanzado",
-  "Notificaciones SMS incluidas",
-  "Informes Premium y Analytics",
+  "10 zonas, 50 mesas, 200 artículos",
+  "Punto de Venta (POS) completo",
+  "Facturación electrónica (Siigo / MisFacturas)",
+  "Base de clientes + tags VIP",
+  "Reportes y analytics",
+  "Notificaciones email",
+  "Personalizar widget",
+  "Hasta 5 usuarios",
+];
+
+const PLAN_PLATINUM = [
+  "Todo lo de Pro, sin límites",
+  "Zonas, mesas y menú ilimitados",
+  "Usuarios ilimitados",
+  "Notificaciones WhatsApp",
+  "Multi-sede (varios restaurantes)",
+  "Acceso a API externa",
   "Soporte prioritario 24/7",
 ];
 
@@ -169,10 +185,11 @@ export default function LandingPage() {
           Sin costes ocultos. Sin letra pequeña.
         </p>
         <div className={styles.pricingGrid}>
+          {/* FREE */}
           <div className={styles.pricingCard}>
-            <h3 className={styles.planName}>Plan Gratis</h3>
+            <h3 className={styles.planName}>Free</h3>
             <p className={styles.planDesc}>
-              Para pequeños locales que están empezando.
+              Para locales que están empezando a digitalizarse.
             </p>
             <div className={styles.planPrice}>
               <span className={styles.priceAmount}>$0</span>
@@ -186,21 +203,22 @@ export default function LandingPage() {
               ))}
             </ul>
             <Link href="/registro" className={styles.btnOutline}>
-              Empezar ahora
+              Empezar gratis
             </Link>
           </div>
 
+          {/* PRO */}
           <div className={`${styles.pricingCard} ${styles.pricingCardPro}`}>
             <span className={styles.planBadge}>RECOMENDADO</span>
-            <h3 className={styles.planName}>Plan Pro</h3>
+            <h3 className={styles.planName}>Pro</h3>
             <p className={styles.planDesc}>
-              Potencia máxima para restaurantes profesionales.
+              Para restaurantes que quieren operar al máximo.
             </p>
             <div className={styles.planPrice}>
               <span className={`${styles.priceAmount} ${styles.priceAmountPro}`}>
-                $49
+                $99.000
               </span>
-              <span className={styles.pricePeriod}>/mes</span>
+              <span className={styles.pricePeriod}>COP/mes</span>
             </div>
             <ul className={styles.planFeatures}>
               {PLAN_PRO.map((f) => (
@@ -210,7 +228,32 @@ export default function LandingPage() {
               ))}
             </ul>
             <Link href="/registro" className={styles.btnPrimary}>
-              Probar Pro Gratis
+              Probar 14 días gratis
+            </Link>
+          </div>
+
+          {/* PLATINUM */}
+          <div className={`${styles.pricingCard} ${styles.pricingCardPlatinum}`}>
+            <span className={styles.planBadgePlatinum}>ENTERPRISE</span>
+            <h3 className={styles.planName}>Platinum</h3>
+            <p className={styles.planDesc}>
+              Multi-sede, sin límites, soporte dedicado.
+            </p>
+            <div className={styles.planPrice}>
+              <span className={`${styles.priceAmount} ${styles.priceAmountPlatinum}`}>
+                $249.000
+              </span>
+              <span className={styles.pricePeriod}>COP/mes</span>
+            </div>
+            <ul className={styles.planFeatures}>
+              {PLAN_PLATINUM.map((f) => (
+                <li key={f}>
+                  <Check size={16} className={styles.checkPurple} /> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/registro" className={styles.btnPlatinum}>
+              Contactar ventas
             </Link>
           </div>
         </div>

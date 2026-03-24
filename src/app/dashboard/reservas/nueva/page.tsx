@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle, X } from "lucide-react";
 import Stepper from "@/components/Stepper";
+import { api } from "@/lib/api-client";
 import styles from "./NuevaReserva.module.css";
 
 const STEPS = [
@@ -12,22 +13,24 @@ const STEPS = [
   { num: 4, label: "Confirmar" },
 ];
 
-const TIME_SLOTS = ["18:30", "19:00", "19:30", "20:00", "20:30", "21:00"];
-
-const ZONES = [
-  { id: "main",    name: "Salón principal",  desc: "Interior, ambiente animado, cerca de la barra." },
-  { id: "terrace", name: "Terraza jardín",   desc: "Exterior, tranquilo, zona pet-friendly." },
-  { id: "vip",     name: "Sala VIP",         desc: "Privado y exclusivo para grupos especiales." },
-  { id: "bar",     name: "Barra lounge",     desc: "Asientos altos, ideal para copas y snacks." },
-];
-
 const MOTIVOS = ["Cena casual", "Cumpleaños", "Aniversario", "Negocio", "Otro"];
+
+interface AvailabilitySlot {
+  time: string;
+  available: boolean;
+}
+
+interface ZoneOption {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 export default function NuevaReservaPage() {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("19:00");
-  const [selectedZone, setSelectedZone] = useState("main");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedZone, setSelectedZone] = useState("");
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
@@ -36,11 +39,73 @@ export default function NuevaReservaPage() {
   const [personas, setPersonas] = useState(2);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  // Availability data from API
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [zones, setZones] = useState<ZoneOption[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+  const monthName = today.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+
+  // Fetch availability when date changes
+  const fetchAvailability = useCallback(async (date: string) => {
+    if (!date) return;
+    setLoadingSlots(true);
+    try {
+      const res = await api.get<{ ok: boolean; data: { slots: AvailabilitySlot[]; zones: ZoneOption[] } }>(
+        `/schedules/availability?date=${date}`
+      );
+      const availableSlots = res.data.slots
+        .filter((s) => s.available)
+        .map((s) => s.time);
+      setTimeSlots(availableSlots);
+      if (availableSlots.length > 0 && !selectedTime) {
+        setSelectedTime(availableSlots[0]);
+      }
+      if (res.data.zones && res.data.zones.length > 0) {
+        setZones(res.data.zones);
+        if (!selectedZone) {
+          setSelectedZone(res.data.zones[0].id);
+        }
+      }
+    } catch {
+      // Fallback: keep empty
+      setTimeSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAvailability(selectedDate);
+    }
+  }, [selectedDate, fetchAvailability]);
+
+  // Also fetch zones on mount if not loaded via availability
+  useEffect(() => {
+    if (zones.length === 0) {
+      api.get<{ ok: boolean; data: ZoneOption[] }>("/zones")
+        .then((res) => {
+          setZones(res.data.map((z) => ({ id: z.id, name: z.name, description: (z as unknown as { description?: string }).description })));
+          if (res.data.length > 0 && !selectedZone) {
+            setSelectedZone(res.data[0].id);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   const validateStep = (): boolean => {
     const next: Record<string, string> = {};
     if (step === 1) {
       if (!selectedDate) next.date = "Selecciona una fecha.";
+      if (!selectedTime) next.time = "Selecciona una hora.";
     }
     if (step === 2) {
       if (!nombre.trim()) next.nombre = "El nombre es obligatorio.";
@@ -52,14 +117,30 @@ export default function NuevaReservaPage() {
     return Object.keys(next).length === 0;
   };
 
-  const today = new Date();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
-  const monthName = today.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
-
-  const handleComplete = () => setSuccess(true);
+  const handleComplete = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await api.post("/reservations", {
+        fecha: selectedDate,
+        hora: selectedTime,
+        nombre,
+        telefono,
+        correo: email,
+        personas,
+        motivo,
+        zoneId: selectedZone,
+      });
+      setSuccess(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Error al crear la reserva");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (success) {
+    const zoneName = zones.find((z) => z.id === selectedZone)?.name || selectedZone;
     return (
       <div className={styles.successPage}>
         <div className={styles.successCard}>
@@ -68,9 +149,7 @@ export default function NuevaReservaPage() {
           </div>
           <h2>¡Reserva confirmada!</h2>
           <p>{nombre} · {personas} personas · {selectedTime}</p>
-          <p className={styles.successZone}>
-            {ZONES.find((z) => z.id === selectedZone)?.name}
-          </p>
+          <p className={styles.successZone}>{zoneName}</p>
           <a href="/dashboard/reservas" className={styles.btnBack}>
             Volver a reservas
           </a>
@@ -134,23 +213,32 @@ export default function NuevaReservaPage() {
                 <h3 className={styles.sectionTitle} style={{ marginTop: 24 }}>
                   Hora de llegada
                 </h3>
-                <div className={styles.timeSlots}>
-                  {TIME_SLOTS.map((t) => (
-                    <button
-                      key={t}
-                      className={`${styles.timeChip} ${selectedTime === t ? styles.timeChipActive : ""}`}
-                      onClick={() => setSelectedTime(t)}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
+                {loadingSlots ? (
+                  <div style={{ color: "#aaa", fontSize: 13, padding: "8px 0" }}>Cargando horarios disponibles...</div>
+                ) : timeSlots.length > 0 ? (
+                  <div className={styles.timeSlots}>
+                    {timeSlots.map((t) => (
+                      <button
+                        key={t}
+                        className={`${styles.timeChip} ${selectedTime === t ? styles.timeChipActive : ""}`}
+                        onClick={() => setSelectedTime(t)}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                ) : selectedDate ? (
+                  <div style={{ color: "#aaa", fontSize: 13, padding: "8px 0" }}>No hay horarios disponibles para esta fecha.</div>
+                ) : (
+                  <div style={{ color: "#aaa", fontSize: 13, padding: "8px 0" }}>Selecciona una fecha para ver horarios disponibles.</div>
+                )}
+                {errors.time && <p style={{ color: "#e53935", fontSize: 13, margin: "8px 0 0" }}>{errors.time}</p>}
               </div>
 
               <div>
                 <h3 className={styles.sectionTitle}>Seleccionar zona</h3>
                 <div className={styles.zoneCards}>
-                  {ZONES.map((z) => (
+                  {zones.map((z) => (
                     <div
                       key={z.id}
                       className={`${styles.zoneCard} ${selectedZone === z.id ? styles.zoneCardActive : ""}`}
@@ -159,7 +247,7 @@ export default function NuevaReservaPage() {
                       <div className={styles.zoneImgPlaceholder} />
                       <div className={styles.zoneInfo}>
                         <span className={styles.zoneName}>{z.name}</span>
-                        <span className={styles.zoneDesc}>{z.desc}</span>
+                        <span className={styles.zoneDesc}>{z.description || ""}</span>
                         {selectedZone === z.id && (
                           <span className={styles.zoneSelected}>✓ SELECCIONADO</span>
                         )}
@@ -268,7 +356,7 @@ export default function NuevaReservaPage() {
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>Zona</span>
                 <span className={styles.summaryValue}>
-                  {ZONES.find((z) => z.id === selectedZone)?.name}
+                  {zones.find((z) => z.id === selectedZone)?.name || selectedZone}
                 </span>
               </div>
               <div className={styles.summaryRow}>
@@ -292,6 +380,11 @@ export default function NuevaReservaPage() {
                 <span className={styles.summaryValue}>{motivo}</span>
               </div>
             </div>
+            {submitError && (
+              <div style={{ color: "#e53935", fontSize: 14, marginTop: 12, padding: "8px 12px", background: "rgba(229,57,53,0.1)", borderRadius: 8 }}>
+                {submitError}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -309,8 +402,8 @@ export default function NuevaReservaPage() {
             Continuar <ArrowRight size={16} />
           </button>
         ) : (
-          <button className={styles.btnComplete} onClick={() => { if (validateStep()) handleComplete(); }}>
-            Confirmar reserva <ArrowRight size={16} />
+          <button className={styles.btnComplete} onClick={() => { if (validateStep()) handleComplete(); }} disabled={submitting}>
+            {submitting ? "Creando reserva..." : "Confirmar reserva"} {!submitting && <ArrowRight size={16} />}
           </button>
         )}
       </div>

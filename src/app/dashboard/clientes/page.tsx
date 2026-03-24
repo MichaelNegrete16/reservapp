@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, X, FileSpreadsheet, Plus } from "lucide-react";
+import { api } from "@/lib/api-client";
 import styles from "./Clientes.module.css";
 
 interface Cliente {
@@ -20,14 +21,6 @@ interface Cliente {
 
 type Tab = "all" | "vip" | "frequent" | "blacklist";
 
-const CLIENTES: Cliente[] = [
-  { id: "c1", name: "Juan Pérez", initials: "JP", phone: "+57 (234) 567-8901", email: "juan.perez@ejemplo.com", visits: 24, lastVisit: "24 oct, 2023", tags: ["VIP", "Leal"], avatarColor: "#e3f2fd", notes: "Prefiere la mesa 4. Siempre pide la selección de vino tinto reserva. Alérgico a los piñones.", birthday: "12 de marzo, 1985" },
-  { id: "c2", name: "Sara Milán", initials: "SM", phone: "+57 (555) 123-4567", email: "sara.milan@gmail.com", visits: 12, lastVisit: "20 oct, 2023", tags: ["Frecuente"], avatarColor: "#fce4ec", notes: "Vegetariana. Prefiere mesas tranquilas.", birthday: "5 de julio, 1990" },
-  { id: "c3", name: "Roberto Wilson", initials: "RW", phone: "+57 (415) 888-9900", email: "r.wilson@outlook.com", visits: 2, lastVisit: "15 sep, 2023", tags: ["Lista negra"], avatarColor: "#e8f5e9", notes: "Incidente en la última visita. Tratar con cuidado.", birthday: "—" },
-  { id: "c4", name: "Emma Knight", initials: "EK", phone: "+57 (650) 444-5555", email: "emma.k@empresa.com", visits: 8, lastVisit: "22 oct, 2023", tags: ["Frecuente"], avatarColor: "#fff3e0", notes: "Cliente corporativo. Prefiere zona privada.", birthday: "3 de nov, 1988" },
-  { id: "c5", name: "Carlos Méndez", initials: "CM", phone: "+57 (305) 777-2233", email: "c.mendez@mail.com", visits: 31, lastVisit: "25 oct, 2023", tags: ["VIP", "Frecuente"], avatarColor: "#f3e5f5", notes: "Aprecia las recomendaciones del sommelier.", birthday: "18 de enero, 1975" },
-];
-
 const TAG_COLORS: Record<string, { color: string; bg: string }> = {
   VIP: { color: "#c2185b", bg: "#fce4ec" },
   Leal: { color: "#e65100", bg: "#fff3e0" },
@@ -36,28 +29,135 @@ const TAG_COLORS: Record<string, { color: string; bg: string }> = {
   "Lista negra": { color: "#d32f2f", bg: "#ffebee" },
 };
 
-const RECENT_BOOKINGS = [
-  { date: "OCT 24", title: "Cena para 4", time: "Completada · 8:30 PM", amount: "$420.000" },
-  { date: "SEP 12", title: "Almuerzo para 2", time: "Completada · 1:00 PM", amount: "$125.500" },
-];
+const TAB_TO_TAG: Record<Tab, string | null> = {
+  all: null,
+  vip: "VIP",
+  frequent: "Frecuente",
+  blacklist: "Lista negra",
+};
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+const AVATAR_COLORS = ["#e3f2fd", "#fce4ec", "#e8f5e9", "#fff3e0", "#f3e5f5", "#e0f7fa", "#fff9c4"];
+
+function pickColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
 
 export default function ClientesPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Cliente | null>(CLIENTES[0]);
+  const [clients, setClients] = useState<Cliente[]>([]);
+  const [selected, setSelected] = useState<Cliente | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [editingTags, setEditingTags] = useState(false);
+  const [tagDraft, setTagDraft] = useState("");
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [newForm, setNewForm] = useState({ name: "", phone: "", email: "" });
 
-  const filtered = CLIENTES.filter((c) => {
-    const matchTab =
-      tab === "all" ||
-      (tab === "vip" && c.tags.includes("VIP")) ||
-      (tab === "frequent" && (c.tags.includes("Frecuente") || c.tags.includes("Frequent"))) ||
-      (tab === "blacklist" && c.tags.includes("Lista negra"));
-    const matchSearch =
-      !search ||
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase());
-    return matchTab && matchSearch;
-  });
+  const fetchClients = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const body: Record<string, unknown> = { page: 1, limit: 50 };
+      if (search) body.search = search;
+      const tag = TAB_TO_TAG[tab];
+      if (tag) body.tag = tag;
+      const res = await api.post<{ ok: boolean; data: unknown[] }>("/clients/list", body);
+      const mapped: Cliente[] = (res.data as Record<string, unknown>[]).map((c) => ({
+        id: c.id as string,
+        name: (c.name as string) ?? "",
+        initials: getInitials((c.name as string) ?? ""),
+        phone: (c.phone as string) ?? "",
+        email: (c.email as string) ?? "",
+        visits: (c.visits as number) ?? 0,
+        lastVisit: (c.lastVisit as string) ?? "—",
+        tags: (c.tags as string[]) ?? [],
+        avatarColor: pickColor(c.id as string),
+        notes: (c.notes as string) ?? "",
+        birthday: (c.birthday as string) ?? "—",
+      }));
+      setClients(mapped);
+      if (mapped.length > 0 && !selected) setSelected(mapped[0]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error cargando clientes");
+    } finally {
+      setLoading(false);
+    }
+  }, [search, tab]);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
+
+  const handleUpdateTags = async (clientId: string, tags: string[]) => {
+    try {
+      await api.patch(`/clients/${clientId}/tags`, { tags });
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? { ...c, tags } : c))
+      );
+      if (selected?.id === clientId) setSelected((prev) => prev ? { ...prev, tags } : prev);
+      setEditingTags(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error actualizando etiquetas");
+    }
+  };
+
+  const handleUpdateNotes = async (clientId: string, notes: string) => {
+    try {
+      await api.patch(`/clients/${clientId}/notes`, { notes });
+      setClients((prev) =>
+        prev.map((c) => (c.id === clientId ? { ...c, notes } : c))
+      );
+      if (selected?.id === clientId) setSelected((prev) => prev ? { ...prev, notes } : prev);
+      setEditingNotes(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error actualizando notas");
+    }
+  };
+
+  const handleCreateClient = async () => {
+    if (!newForm.name.trim()) return;
+    try {
+      const res = await api.post<{ ok: boolean; data: Record<string, unknown> }>("/clients", newForm);
+      const c = res.data;
+      const nuevo: Cliente = {
+        id: c.id as string,
+        name: (c.name as string) ?? newForm.name,
+        initials: getInitials(newForm.name),
+        phone: (c.phone as string) ?? newForm.phone,
+        email: (c.email as string) ?? newForm.email,
+        visits: 0,
+        lastVisit: "—",
+        tags: [],
+        avatarColor: pickColor(c.id as string),
+        notes: "",
+        birthday: "—",
+      };
+      setClients((prev) => [nuevo, ...prev]);
+      setShowNewModal(false);
+      setNewForm({ name: "", phone: "", email: "" });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error creando cliente");
+    }
+  };
+
+  const RECENT_BOOKINGS = [
+    { date: "OCT 24", title: "Cena para 4", time: "Completada · 8:30 PM", amount: "$420.000" },
+    { date: "SEP 12", title: "Almuerzo para 2", time: "Completada · 1:00 PM", amount: "$125.500" },
+  ];
 
   return (
     <div className={styles.page}>
@@ -78,7 +178,7 @@ export default function ClientesPage() {
             <button className={styles.btnExport}>
               <FileSpreadsheet size={16} /> Exportar Excel
             </button>
-            <button className={styles.btnAdd}>
+            <button className={styles.btnAdd} onClick={() => setShowNewModal(true)}>
               <Plus size={16} />
             </button>
           </div>
@@ -105,56 +205,69 @@ export default function ClientesPage() {
 
         {/* Table */}
         <div className={styles.tableCard}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Correo</th>
-                <th>Visitas</th>
-                <th>Última visita</th>
-                <th>Etiquetas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((c) => (
-                <tr
-                  key={c.id}
-                  className={selected?.id === c.id ? styles.rowSelected : ""}
-                  onClick={() => setSelected(c)}
-                >
-                  <td>
-                    <div className={styles.nameCell}>
-                      <div className={styles.avatar} style={{ background: c.avatarColor }}>
-                        {c.initials}
-                      </div>
-                      <span className={styles.clientName}>{c.name}</span>
-                    </div>
-                  </td>
-                  <td className={styles.phone}>{c.phone}</td>
-                  <td className={styles.email}>{c.email}</td>
-                  <td className={styles.visits}>{c.visits}</td>
-                  <td className={styles.lastVisit}>{c.lastVisit}</td>
-                  <td>
-                    <div className={styles.tagsCell}>
-                      {c.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className={styles.tagPill}
-                          style={{
-                            color: TAG_COLORS[tag]?.color ?? "#555",
-                            background: TAG_COLORS[tag]?.bg ?? "#f0f0f0",
-                          }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
+          {loading ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#999" }}>Cargando clientes...</div>
+          ) : error ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#d32f2f" }}>{error}</div>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Teléfono</th>
+                  <th>Correo</th>
+                  <th>Visitas</th>
+                  <th>Última visita</th>
+                  <th>Etiquetas</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {clients.map((c) => (
+                  <tr
+                    key={c.id}
+                    className={selected?.id === c.id ? styles.rowSelected : ""}
+                    onClick={() => setSelected(c)}
+                  >
+                    <td>
+                      <div className={styles.nameCell}>
+                        <div className={styles.avatar} style={{ background: c.avatarColor }}>
+                          {c.initials}
+                        </div>
+                        <span className={styles.clientName}>{c.name}</span>
+                      </div>
+                    </td>
+                    <td className={styles.phone}>{c.phone}</td>
+                    <td className={styles.email}>{c.email}</td>
+                    <td className={styles.visits}>{c.visits}</td>
+                    <td className={styles.lastVisit}>{c.lastVisit}</td>
+                    <td>
+                      <div className={styles.tagsCell}>
+                        {c.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className={styles.tagPill}
+                            style={{
+                              color: TAG_COLORS[tag]?.color ?? "#555",
+                              background: TAG_COLORS[tag]?.bg ?? "#f0f0f0",
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {clients.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: "center", padding: 40, color: "#999" }}>
+                      No se encontraron clientes
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -167,7 +280,7 @@ export default function ClientesPage() {
             </div>
             <div className={styles.drawerTitleInfo}>
               <h3 className={styles.drawerName}>{selected.name}</h3>
-              <span className={styles.drawerIdLine}>ID cliente: #R99283</span>
+              <span className={styles.drawerIdLine}>ID cliente: #{selected.id.slice(0, 8)}</span>
               <div className={styles.drawerTags}>
                 {selected.tags.map((tag) => (
                   <span key={tag} className={styles.tagPill} style={{
@@ -187,18 +300,54 @@ export default function ClientesPage() {
           <div className={styles.drawerSection}>
             <div className={styles.drawerSectionHeader}>
               <span className={styles.drawerSectionLabel}>Editor de etiquetas</span>
-              <button className={styles.drawerEditBtn}><Plus size={14} /> Editar</button>
+              <button
+                className={styles.drawerEditBtn}
+                onClick={() => {
+                  if (editingTags) return;
+                  setEditingTags(true);
+                  setTagDraft(selected.tags.join(", "));
+                }}
+              >
+                <Plus size={14} /> Editar
+              </button>
             </div>
-            <div className={styles.drawerTags}>
-              {selected.tags.map((tag) => (
-                <span key={tag} className={styles.tagPill} style={{
-                  color: TAG_COLORS[tag]?.color ?? "#555",
-                  background: TAG_COLORS[tag]?.bg ?? "#f0f0f0",
-                }}>
-                  {tag} ×
-                </span>
-              ))}
-            </div>
+            {editingTags ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <input
+                  style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 13 }}
+                  value={tagDraft}
+                  onChange={(e) => setTagDraft(e.target.value)}
+                  placeholder="VIP, Frecuente, Leal..."
+                />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className={styles.drawerEditBtn}
+                    onClick={() =>
+                      handleUpdateTags(
+                        selected.id,
+                        tagDraft.split(",").map((t) => t.trim()).filter(Boolean)
+                      )
+                    }
+                  >
+                    Guardar
+                  </button>
+                  <button className={styles.drawerEditBtn} onClick={() => setEditingTags(false)}>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.drawerTags}>
+                {selected.tags.map((tag) => (
+                  <span key={tag} className={styles.tagPill} style={{
+                    color: TAG_COLORS[tag]?.color ?? "#555",
+                    background: TAG_COLORS[tag]?.bg ?? "#f0f0f0",
+                  }}>
+                    {tag} x
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className={styles.drawerSection}>
@@ -213,11 +362,39 @@ export default function ClientesPage() {
           <div className={styles.drawerSection}>
             <span className={styles.drawerSectionLabel}>Notas del equipo</span>
             <div className={styles.notesBox}>
-              <p className={styles.notesText}>&quot;{selected.notes}&quot;</p>
-              <div className={styles.notesFooter}>
-                <span>Última actualización por Manager Alex</span>
-                <button className={styles.drawerEditBtn}>Editar nota</button>
-              </div>
+              {editingNotes ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <textarea
+                    style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 13, minHeight: 60, resize: "vertical" }}
+                    value={noteDraft}
+                    onChange={(e) => setNoteDraft(e.target.value)}
+                  />
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button className={styles.drawerEditBtn} onClick={() => handleUpdateNotes(selected.id, noteDraft)}>
+                      Guardar
+                    </button>
+                    <button className={styles.drawerEditBtn} onClick={() => setEditingNotes(false)}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className={styles.notesText}>&quot;{selected.notes}&quot;</p>
+                  <div className={styles.notesFooter}>
+                    <span>Última actualización</span>
+                    <button
+                      className={styles.drawerEditBtn}
+                      onClick={() => {
+                        setEditingNotes(true);
+                        setNoteDraft(selected.notes);
+                      }}
+                    >
+                      Editar nota
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -243,6 +420,63 @@ export default function ClientesPage() {
 
           <button className={styles.btnCreateReservation}>Crear reserva</button>
         </aside>
+      )}
+
+      {/* Modal nuevo cliente */}
+      {showNewModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex",
+          alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: 24, width: 400, maxWidth: "90vw",
+          }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: 18 }}>Nuevo cliente</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, display: "block" }}>Nombre *</label>
+                <input
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+                  value={newForm.name}
+                  onChange={(e) => setNewForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Nombre completo"
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, display: "block" }}>Teléfono</label>
+                <input
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+                  value={newForm.phone}
+                  onChange={(e) => setNewForm((f) => ({ ...f, phone: e.target.value }))}
+                  placeholder="+57 ..."
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, display: "block" }}>Correo</label>
+                <input
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+                  value={newForm.email}
+                  onChange={(e) => setNewForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="correo@ejemplo.com"
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 20 }}>
+              <button
+                style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #ddd", background: "#fff", cursor: "pointer" }}
+                onClick={() => setShowNewModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                style={{ padding: "8px 16px", borderRadius: 6, border: "none", background: "#e65100", color: "#fff", cursor: "pointer", fontWeight: 600 }}
+                onClick={handleCreateClient}
+              >
+                Crear cliente
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,29 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, CheckCircle, Printer } from "lucide-react";
+import { api } from "@/lib/api-client";
 import styles from "./Factura.module.css";
 
-/* ─── Datos mock por mesa ─── */
-const PEDIDOS_MOCK: Record<string, { nombre: string; precio: number; cantidad: number; emoji: string }[]> = {
-  "1":  [
-    { nombre: "Filete de res",       precio: 68000, cantidad: 2, emoji: "🥩" },
-    { nombre: "Limonada de coco",    precio: 12000, cantidad: 3, emoji: "🥤" },
-    { nombre: "Bruschetta",          precio: 18000, cantidad: 1, emoji: "🍞" },
-  ],
-  "3":  [
-    { nombre: "Bandeja paisa",       precio: 45000, cantidad: 4, emoji: "🍲" },
-    { nombre: "Cerveza artesanal",   precio: 16000, cantidad: 4, emoji: "🍺" },
-    { nombre: "Tiramisú",            precio: 18000, cantidad: 2, emoji: "🍰" },
-  ],
-  "12": [
-    { nombre: "Salmón al limón",     precio: 58000, cantidad: 2, emoji: "🐟" },
-    { nombre: "Vino copa",           precio: 22000, cantidad: 3, emoji: "🍷" },
-    { nombre: "Cheesecake de frutos",precio: 20000, cantidad: 1, emoji: "🍓" },
-  ],
-};
+interface BillItem {
+  nombre: string;
+  precio: number;
+  cantidad: number;
+  emoji: string;
+}
+
+interface MesaFactura {
+  numero: number;
+  zona: string;
+  mesero: string;
+}
 
 const METODOS_PAGO = [
   { id: "efectivo",     label: "Efectivo",      emoji: "💵" },
@@ -31,12 +26,6 @@ const METODOS_PAGO = [
   { id: "transferencia",label: "Transferencia", emoji: "📲" },
   { id: "mixto",        label: "Mixto",          emoji: "🔀" },
 ];
-
-const MESAS_INFO: Record<string, { numero: number; zona: string; mesero: string }> = {
-  "1":  { numero: 1,  zona: "Salón",   mesero: "Carlos R." },
-  "3":  { numero: 3,  zona: "Salón",   mesero: "Laura M."  },
-  "12": { numero: 12, zona: "Barra",   mesero: "Carlos R." },
-};
 
 const IVA_PCT = 0.19;
 
@@ -46,13 +35,70 @@ const formatCOP = (v: number) =>
 export default function FacturaPage() {
   const params = useParams();
   const mesaId = params?.id as string ?? "1";
-  const mesa = MESAS_INFO[mesaId] ?? { numero: Number(mesaId), zona: "—", mesero: "—" };
-  const items = PEDIDOS_MOCK[mesaId] ?? PEDIDOS_MOCK["1"];
+
+  const [mesa, setMesa] = useState<MesaFactura>({ numero: 0, zona: "--", mesero: "--" });
+  const [items, setItems] = useState<BillItem[]>([]);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [descuentoPct, setDescuentoPct] = useState(0);
   const [metodoPago, setMetodoPago] = useState("efectivo");
   const [efectivoIngresado, setEfectivoIngresado] = useState("");
   const [pagado, setPagado] = useState(false);
+  const [paying, setPaying] = useState(false);
+
+  const fetchBill = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // First get table info to find the active order
+      const tablesRes = await api.get<{ ok: boolean; data: Record<string, unknown>[] }>("/pos/tables");
+      const table = (tablesRes.data ?? []).find((t) => (t.id as string) === mesaId);
+
+      if (!table) {
+        setError("Mesa no encontrada");
+        return;
+      }
+
+      setMesa({
+        numero: (table.number as number) ?? (table.numero as number) ?? 0,
+        zona: (table.zone as string) ?? (table.zona as string) ?? "--",
+        mesero: (table.waiter as string) ?? (table.mesero as string) ?? "--",
+      });
+
+      const activeOrderId = (table.orderId as string) ?? (table.activeOrderId as string) ?? null;
+      if (!activeOrderId) {
+        setError("No hay orden activa para esta mesa");
+        return;
+      }
+
+      setOrderId(activeOrderId);
+
+      // Get the bill
+      const billRes = await api.get<{ ok: boolean; data: Record<string, unknown> }>(`/pos/orders/${activeOrderId}/bill`);
+      const billData = billRes.data;
+
+      const billItems = (billData?.items as Record<string, unknown>[]) ?? [];
+      const mapped: BillItem[] = billItems.map((item) => ({
+        nombre: (item.name as string) ?? (item.nombre as string) ?? "",
+        precio: (item.price as number) ?? (item.unitPrice as number) ?? (item.precio as number) ?? 0,
+        cantidad: (item.quantity as number) ?? (item.cantidad as number) ?? 1,
+        emoji: (item.emoji as string) ?? "🍽️",
+      }));
+
+      setItems(mapped);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error cargando factura");
+    } finally {
+      setLoading(false);
+    }
+  }, [mesaId]);
+
+  useEffect(() => {
+    fetchBill();
+  }, [fetchBill]);
 
   const subtotal  = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
   const descuento = subtotal * (descuentoPct / 100);
@@ -61,9 +107,22 @@ export default function FacturaPage() {
   const total     = baseIva + iva;
   const cambio    = (parseFloat(efectivoIngresado) || 0) - total;
 
-  const handlePagar = () => {
+  const handlePagar = async () => {
     if (metodoPago === "efectivo" && parseFloat(efectivoIngresado) < total) return;
-    setPagado(true);
+    if (!orderId) return;
+    try {
+      setPaying(true);
+      await api.post(`/pos/orders/${orderId}/pay`, {
+        paymentMethod: metodoPago,
+        discount: descuentoPct,
+        cashReceived: metodoPago === "efectivo" ? parseFloat(efectivoIngresado) : undefined,
+      });
+      setPagado(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error procesando pago");
+    } finally {
+      setPaying(false);
+    }
   };
 
   /* Pantalla de éxito */
@@ -94,6 +153,27 @@ export default function FacturaPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#999" }}>Cargando factura...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.topBar}>
+          <Link href={`/dashboard/pos/mesa/${mesaId}`} className={styles.backBtn}>
+            <ArrowLeft size={18} /> Volver al pedido
+          </Link>
+        </div>
+        <div style={{ padding: 60, textAlign: "center", color: "#d32f2f" }}>{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       {/* Cabecera */}
@@ -107,7 +187,7 @@ export default function FacturaPage() {
       </div>
 
       <div className={styles.layout}>
-        {/* ── Resumen pedido ── */}
+        {/* -- Resumen pedido -- */}
         <div className={styles.resumenPanel}>
           <h2 className={styles.panelTitle}>Resumen del pedido</h2>
 
@@ -152,7 +232,7 @@ export default function FacturaPage() {
           </div>
         </div>
 
-        {/* ── Panel de pago ── */}
+        {/* -- Panel de pago -- */}
         <div className={styles.pagoPanel}>
           <h2 className={styles.panelTitle}>Cobro</h2>
 
@@ -164,7 +244,7 @@ export default function FacturaPage() {
             {descuento > 0 && (
               <div className={`${styles.desgloseRow} ${styles.desgloseDescuento}`}>
                 <span>Descuento ({descuentoPct}%)</span>
-                <span>− {formatCOP(descuento)}</span>
+                <span>- {formatCOP(descuento)}</span>
               </div>
             )}
             <div className={styles.desgloseRow}>
@@ -219,9 +299,9 @@ export default function FacturaPage() {
           <button
             className={styles.btnPagar}
             onClick={handlePagar}
-            disabled={metodoPago === "efectivo" && parseFloat(efectivoIngresado) < total}
+            disabled={(metodoPago === "efectivo" && parseFloat(efectivoIngresado) < total) || paying}
           >
-            ✅ Confirmar pago · {formatCOP(total)}
+            {paying ? "Procesando..." : `Confirmar pago · ${formatCOP(total)}`}
           </button>
         </div>
       </div>

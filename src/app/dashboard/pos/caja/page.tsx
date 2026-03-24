@@ -1,50 +1,114 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api-client";
 import styles from "./Caja.module.css";
 
-/* ─── Datos mock ─── */
-const TRANSACCIONES = [
-  { id: "T001", hora: "18:45", mesa: "Mesa 3",  mesero: "Laura M.",  items: 6, metodo: "Tarjeta",      total: 142000 },
-  { id: "T002", hora: "19:10", mesa: "Mesa 1",  mesero: "Carlos R.", items: 3, metodo: "Efectivo",     total: 87500  },
-  { id: "T003", hora: "19:30", mesa: "Mesa 9",  mesero: "Jhon P.",   items: 5, metodo: "Transferencia",total: 176000 },
-  { id: "T004", hora: "19:55", mesa: "Mesa 4",  mesero: "Carlos R.", items: 8, metodo: "Tarjeta",      total: 215000 },
-  { id: "T005", hora: "20:10", mesa: "Mesa 7",  mesero: "Laura M.",  items: 2, metodo: "Efectivo",     total: 54000  },
-  { id: "T006", hora: "20:30", mesa: "Barra 11",mesero: "Jhon P.",   items: 1, metodo: "Efectivo",     total: 28000  },
-  { id: "T007", hora: "20:45", mesa: "Mesa 12", mesero: "Carlos R.", items: 4, metodo: "Tarjeta",      total: 98000  },
-  { id: "T008", hora: "21:00", mesa: "Mesa 5",  mesero: "Laura M.",  items: 3, metodo: "Tarjeta",      total: 61000  },
-  { id: "T009", hora: "21:20", mesa: "Mesa 2",  mesero: "Jhon P.",   items: 2, metodo: "Efectivo",     total: 36000  },
-  { id: "T010", hora: "21:40", mesa: "Mesa 8",  mesero: "Carlos R.", items: 5, metodo: "Transferencia",total: 124000 },
-];
+interface Transaccion {
+  id: string;
+  hora: string;
+  mesa: string;
+  mesero: string;
+  items: number;
+  metodo: string;
+  total: number;
+}
 
 const METODO_COLOR: Record<string, { color: string; bg: string }> = {
   Efectivo:      { color: "#388e3c", bg: "#e8f5e9" },
+  efectivo:      { color: "#388e3c", bg: "#e8f5e9" },
   Tarjeta:       { color: "#1565c0", bg: "#e3f2fd" },
+  tarjeta:       { color: "#1565c0", bg: "#e3f2fd" },
   Transferencia: { color: "#6a1b9a", bg: "#f3e5f5" },
+  transferencia: { color: "#6a1b9a", bg: "#f3e5f5" },
 };
 
 const formatCOP = (v: number) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
 
 export default function CajaPage() {
+  const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
+  const [summary, setSummary] = useState<{
+    totalVentas: number;
+    totalEfectivo: number;
+    totalTarjeta: number;
+    totalTransferencia: number;
+    numTransacciones: number;
+  }>({ totalVentas: 0, totalEfectivo: 0, totalTarjeta: 0, totalTransferencia: 0, numTransacciones: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modalCierre, setModalCierre] = useState(false);
   const [cajaCerrada, setCajaCerrada] = useState(false);
+  const [closing, setClosing] = useState(false);
 
-  const totalVentas  = TRANSACCIONES.reduce((s, t) => s + t.total, 0);
-  const totalEfectivo    = TRANSACCIONES.filter((t) => t.metodo === "Efectivo").reduce((s, t) => s + t.total, 0);
-  const totalTarjeta     = TRANSACCIONES.filter((t) => t.metodo === "Tarjeta").reduce((s, t) => s + t.total, 0);
-  const totalTransferencia = TRANSACCIONES.filter((t) => t.metodo === "Transferencia").reduce((s, t) => s + t.total, 0);
-  const numTransacciones = TRANSACCIONES.length;
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const pctEfectivo     = Math.round((totalEfectivo / totalVentas) * 100);
-  const pctTarjeta      = Math.round((totalTarjeta / totalVentas) * 100);
-  const pctTransferencia = 100 - pctEfectivo - pctTarjeta;
+      const [summaryRes, txRes] = await Promise.all([
+        api.get<{ ok: boolean; data: Record<string, unknown> }>("/pos/register/summary"),
+        api.get<{ ok: boolean; data: Record<string, unknown>[] }>("/pos/register/transactions"),
+      ]);
 
-  const gradientDonut = `conic-gradient(
-    #388e3c 0% ${pctEfectivo}%,
-    #1565c0 ${pctEfectivo}% ${pctEfectivo + pctTarjeta}%,
-    #6a1b9a ${pctEfectivo + pctTarjeta}% 100%
-  )`;
+      // Map summary
+      const s = summaryRes.data;
+      setSummary({
+        totalVentas: (s.totalSales as number) ?? (s.totalVentas as number) ?? 0,
+        totalEfectivo: (s.totalCash as number) ?? (s.totalEfectivo as number) ?? 0,
+        totalTarjeta: (s.totalCard as number) ?? (s.totalTarjeta as number) ?? 0,
+        totalTransferencia: (s.totalTransfer as number) ?? (s.totalTransferencia as number) ?? 0,
+        numTransacciones: (s.transactionCount as number) ?? (s.numTransacciones as number) ?? 0,
+      });
+
+      // Map transactions
+      const mapped: Transaccion[] = (txRes.data ?? []).map((t) => ({
+        id: (t.id as string) ?? "",
+        hora: (t.time as string) ?? (t.hora as string) ?? "",
+        mesa: (t.table as string) ?? (t.mesa as string) ?? "",
+        mesero: (t.waiter as string) ?? (t.mesero as string) ?? "",
+        items: (t.itemCount as number) ?? (t.items as number) ?? 0,
+        metodo: (t.paymentMethod as string) ?? (t.metodo as string) ?? "",
+        total: (t.total as number) ?? 0,
+      }));
+      setTransacciones(mapped);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error cargando datos de caja");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleCerrarCaja = async () => {
+    try {
+      setClosing(true);
+      await api.post("/pos/register/close");
+      setModalCierre(false);
+      setCajaCerrada(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error cerrando caja");
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  const { totalVentas, totalEfectivo, totalTarjeta, totalTransferencia, numTransacciones } = summary;
+
+  const pctEfectivo     = totalVentas > 0 ? Math.round((totalEfectivo / totalVentas) * 100) : 0;
+  const pctTarjeta      = totalVentas > 0 ? Math.round((totalTarjeta / totalVentas) * 100) : 0;
+  const pctTransferencia = totalVentas > 0 ? 100 - pctEfectivo - pctTarjeta : 0;
+
+  const gradientDonut = totalVentas > 0
+    ? `conic-gradient(
+      #388e3c 0% ${pctEfectivo}%,
+      #1565c0 ${pctEfectivo}% ${pctEfectivo + pctTarjeta}%,
+      #6a1b9a ${pctEfectivo + pctTarjeta}% 100%
+    )`
+    : `conic-gradient(#e0e0e0 0% 100%)`;
 
   if (cajaCerrada) {
     return (
@@ -57,6 +121,22 @@ export default function CajaPage() {
           <p className={styles.successSub}>{numTransacciones} transacciones procesadas</p>
           <a href="/dashboard/pos" className={styles.btnVolver}>Volver a mesas</a>
         </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#999" }}>Cargando datos de caja...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <div style={{ padding: 60, textAlign: "center", color: "#d32f2f" }}>{error}</div>
       </div>
     );
   }
@@ -121,11 +201,11 @@ export default function CajaPage() {
               </tr>
             </thead>
             <tbody>
-              {TRANSACCIONES.map((t) => {
-                const mc = METODO_COLOR[t.metodo];
+              {transacciones.map((t) => {
+                const mc = METODO_COLOR[t.metodo] ?? { color: "#555", bg: "#f0f0f0" };
                 return (
                   <tr key={t.id}>
-                    <td className={styles.tdId}>{t.id}</td>
+                    <td className={styles.tdId}>{t.id.slice(0, 6)}</td>
                     <td>{t.hora}</td>
                     <td>{t.mesa}</td>
                     <td>{t.mesero}</td>
@@ -187,9 +267,10 @@ export default function CajaPage() {
               </button>
               <button
                 className={styles.btnConfirmar}
-                onClick={() => { setModalCierre(false); setCajaCerrada(true); }}
+                onClick={handleCerrarCaja}
+                disabled={closing}
               >
-                Sí, cerrar caja
+                {closing ? "Cerrando..." : "Sí, cerrar caja"}
               </button>
             </div>
           </div>
